@@ -1,0 +1,23 @@
+serverAddr = "interzx.com"
+serverPort = 7000
+
+[[proxies]]
+name = "proxy1"
+type = "tcp"
+localIp = "127.0.0.1"
+localPort = 3389
+remotePort = 6000
+
+[[proxies]]
+name = "proxy2"
+type = "tcp"
+localIp = "127.0.0.1"
+localPort = 2211
+remotePort = 6001
+
+[[proxies]]
+name = "proxy1"
+type = "tcp"
+localIp = "127.0.0.1"
+localPort = 3389
+remotePort = 6000
