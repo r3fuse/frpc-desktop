@@ -1,25 +1,24 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import terminal from "./terminal.vue";
-import Nav from "./nav.vue";
 import Status from "./status.vue";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-interface Message{
-  msg_type:string,
-  title:string,
-  message:string
-}
+import { notification } from "../utils/notification.ts";
 
-// enum FRPConfigOperation{
-//     Create="Create",
-//     Edit="Edit",
-//     Delete="Delete"
-// }
+type MessageType = "Success" | "Warning" | "Error"
+
+interface MsgType {
+    msg_type:MessageType,
+    title:string,
+    message:string
+}
 
 listen("notification", (event) => {
     console.log("Received notification:", event.payload);
-    alert((event.payload as Message).message)
+    const msg:MsgType = event.payload as MsgType
+    notification({msg_type:msg.msg_type,title:"通知",message:"成功"})
+    // alert((event.payload as MsgType).message)
 });
 
 function start() {
@@ -30,59 +29,19 @@ function stop() {
     invoke("stop_frp");
 }
 
-// function createWindow(){
-//     invoke("open_config_window")
-// }
-
-// const testProxy = ref<Proxies>({
-//     name:"unknow",
-//     type:"tcp",
-//     localIp:"localhost",
-//     localPort:9999,
-//     remotePort:9999
-// })
-
-// function createNewWindow(operation:FRPConfigOperation,proxy:Proxies){
-//     invoke("create_window",{operation:operation,proxy:proxy})
-// }
-// const memory =ref(0)
-// async function getMem(){
-//     const [virual_mem,physical_mem]= await invoke("get_momery_usage")as number[];
-//     console.log(virual_mem,physical_mem);
-    
-//     // console.log(mem/1024/1024);
-//     // memory.value = mem/1024/1024
-// }
-
 const status = ref<boolean>(false)
-
-
 
 </script>
 
 <template>
     <div class="index">
         <div class="top">
-            <!-- <h1>test</h1> -->
             <div class="btn">
                 <span>FRP</span>
                 <div class="control"  @click="(status=!status)?start():stop()">
                     <div class="outBox"></div>
                     <div class="circle green" v-show="status"></div>
                     <div class="circle red" v-show="!status"></div>
-                </div>
-            </div>
-            <!-- <button @click="(status=!status)?start():stop()">start frp</button>
-            <button @click="stop">stop frp</button> -->
-            <!-- <button @click="createWindow">createWindow</button> -->
-            <!-- <button @click="readConfig">readConfig</button> -->
-            <!-- <button @click="createNewWindow(FRPConfigOperation.Edit)">Edit</button>
-            <button @click="createNewWindow(FRPConfigOperation.Create,testProxy)">Create</button> -->
-            <!-- <router-link to="/terminal">asd</router-link> -->
-             <!-- <button @click="getMem">getMem</button><span>mem:{{ memory }}</span> -->
-            <div>
-                <div class="nav">
-                    <Nav/>
                 </div>
             </div>
             <div class="status">
@@ -104,7 +63,9 @@ const status = ref<boolean>(false)
 }
 .top{
     padding: 1rem;
-    flex: 5;
+    flex: 6;
+    display: flex;
+    flex-direction: column;
 }
 .nav{
     margin: 1rem 0;
@@ -118,6 +79,7 @@ const status = ref<boolean>(false)
 }
 .btn span{
     padding: 0 1rem;
+    color: #ca9ee5;
 }
 .btn .control{
     display: flex;
@@ -150,7 +112,7 @@ const status = ref<boolean>(false)
 }
 
 .status{
-    height: 16rem;
+    flex: 1;
 }
 
 </style>

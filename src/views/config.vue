@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { invoke, } from '@tauri-apps/api/core'
 import { useRoute } from 'vue-router';
 import { type Proxies } from "../utils/type"
-import { useProxyStore } from "../store/proxy";
 const props = defineProps()
 const route = useRoute();
-const store = useProxyStore();
 const {operation} = route.params
 
 const inputInfo = ref<Proxies>({
@@ -26,8 +24,8 @@ const connectType = ref(["tcp","udp","http","https"])
 
 const data = JSON.parse(localStorage.getItem("proxy") as string)
 
-function updateConfig(proxy:Proxies){
-    invoke("delete_config",{proxy})
+function addConfig(proxy:Proxies){
+    invoke("add_proxy",{config:proxy})
 }
 
 function changeConfig(name:string){
@@ -35,16 +33,10 @@ function changeConfig(name:string){
     invoke("change_config_by_name",{name:name,proxy:inputInfo.value})
 }
 
-
-
 onMounted(()=>{
     console.log(route.params);
     console.log(inputInfo.value);
     console.log(data);
-})
-
-onUnmounted(()=>{
-    store.clear()
 })
 
 </script>
@@ -74,8 +66,8 @@ onUnmounted(()=>{
                     autocomplete="off">
             </div>
             <div class="btn">
-                <button @click="updateConfig(inputInfo)">save</button>
-                <button @click="changeConfig(data.name)">change</button>
+                <button @click="addConfig(inputInfo)">保存</button>
+                <button @click="changeConfig(data.name)">修改</button>
             </div>
         </div>
     </div>

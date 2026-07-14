@@ -206,19 +206,19 @@ async fn delete_config(app_handle:AppHandle,proxy:Proxies){
     let mut file_cfg = parsing_config().await.unwrap();
     let result = delete_proxy(proxy.name, &mut file_cfg);
     println!("exec delect function after:{:?}",&file_cfg);
-    let win = app_handle.get_webview_window("config").unwrap();
+    // let win = app_handle.get_webview_window("config").unwrap();
     match result {
         Ok(s)=>{
             match write_proxy(&file_cfg,"F:\\rwx\\test.toml".to_string()).await{
                 Ok(())=>{
                     let msg = MsgType{msg_type:MessageType::Success,title:"通知".to_string(),message:"删除成功".to_string()};
-                    let _ =win.close();
+                    // let _ =win.close();
                     send_notification(&app_handle, msg);
                     app_handle.emit("config_updated", {}).unwrap();
                 },
                 Err(e)=>{
                     let msg = MsgType{msg_type:MessageType::Error,title:"通知".to_string(),message:e.to_string()};
-                    let _ = win.close();
+                    // let _ = win.close();
                     send_notification(&app_handle, msg);
                     return ;
                 }
@@ -227,7 +227,7 @@ async fn delete_config(app_handle:AppHandle,proxy:Proxies){
         },
         Err(e)=>{
             let msg = MsgType{msg_type:MessageType::Error,title:"通知".to_string(),message:e};
-            let _ = win.close();
+            // let _ = win.close();
             send_notification(&app_handle, msg);
         }
     }
