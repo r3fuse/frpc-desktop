@@ -17,16 +17,21 @@ interface MsgType {
 listen("notification", (event) => {
     console.log("Received notification:", event.payload);
     const msg:MsgType = event.payload as MsgType
-    notification({msg_type:msg.msg_type,title:"通知",message:"成功"})
+    notification({msg_type:msg.msg_type,title:"通知",message:msg.message})
     // alert((event.payload as MsgType).message)
 });
 
-function start() {
+function start() {  
     invoke("start_frp");
 }
 
 function stop() {
     invoke("stop_frp");
+}
+
+function move_circle(){
+    const circle = document.querySelector(".circle");
+    console.log(circle);
 }
 
 const status = ref<boolean>(false)
@@ -38,10 +43,12 @@ const status = ref<boolean>(false)
         <div class="top">
             <div class="btn">
                 <span>FRP</span>
-                <div class="control"  @click="(status=!status)?start():stop()">
-                    <div class="outBox"></div>
-                    <div class="circle green" v-show="status"></div>
-                    <div class="circle red" v-show="!status"></div>
+                <div class="control"  @click="(status=!status)?start():stop(),move_circle()">
+                    <div class="outBox" :class={green:status,red:!status}>
+                        <!-- <div class="circle green" v-show="status"></div>
+                        <div class="circle red" v-show="!status"></div> -->
+                        <div class="circle" :class={left:status,right:!status}></div>
+                    </div>
                 </div>
             </div>
             <div class="status">
@@ -86,25 +93,34 @@ const status = ref<boolean>(false)
     cursor: pointer;
 }
 .outBox{
-    width: 2.4rem;
-    height: 12px;
+    width: 2.8rem;
+    height: 1rem;
     border: 2px solid #ccc;
     border-radius: 12px;
+    position: relative;
 }
 .circle{
     width: 1rem;
     height: 1rem;
     border-radius: 50%;
-    /* position: absolute;
-    left: 0;
-    top: -8%; */
+    position: absolute;
+    background-color: #00b1fd;
+    transition: all 300ms ease-in-out;
 }
-.green{
+.circle.left{
+    left: 1%;
     background-color: #0fde16;
 }
-.red{
+.circle.right{
+    left: 62%;
     background-color: rgb(220, 15, 15);
 }
+/* .circle.green{
+    background-color: #0fde16;
+}
+.circle.red{
+    background-color: rgb(220, 15, 15);
+} */
 .bottom{
     flex: 3;
     overflow: hidden;

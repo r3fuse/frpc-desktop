@@ -9,7 +9,7 @@ use std::sync::Mutex;
 use serde::{Deserialize, Serialize};
 use std::fs;
 mod utils;
-use utils::tools::{has_frpc_process,mget_resource_path,generate_config,change_proxy,delete_proxy,write_proxy,parsing_config,AppState};
+use utils::tools::{has_frpc_process,get_resource_path,generate_config,change_proxy,delete_proxy,write_proxy,parsing_config,change_proxy_activation_status,AppState};
 use utils::proxies::{Config,Proxies,MsgType,ProxyType};
 use memory_stats::memory_stats;
 use sysinfo::{
@@ -28,7 +28,9 @@ pub fn run() {
         })
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![start_frp,stop_frp,open_config_window,add_proxy,delete_config,change_config_by_name,get_config,create_window,get_momery_usage])
+        .invoke_handler(tauri::generate_handler![start_frp,stop_frp,open_config_window,add_proxy,
+                        delete_config,change_config_by_name,get_config,create_window,
+                        get_momery_usage,change_activation_status])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -57,7 +59,7 @@ fn start_frp(app_handle: AppHandle) {
     // let resource_path = get_resource_path(&app_handle);
     // println!("Resolved resource path: {:?}", resource_path);
 
-    let path = match mget_resource_path(&app_handle){
+    let path = match get_resource_path(&app_handle){
         Ok(path)=>path,
         Err(e)=>{
             eprintln!("{:?}",e);
@@ -116,10 +118,11 @@ async fn open_config_window(app_handle: AppHandle){
     let config_window = tauri::WebviewWindowBuilder::new(&app_handle, "local", tauri::WebviewUrl::App("index.html".into())).build().unwrap();
 }
 
-
+//添加代理
 #[tauri::command]
-fn add_proxy(app_handle: AppHandle,config:Proxies){
-    let mut f = fs::File::options().append(true).open("F:\\rwx\\test.toml").expect("读取错误");
+fn add_proxy(app_handle: AppHandle,config:Proxies)->Result<(),String> {
+    let path = get_resource_path(&app_handle)?;
+    let mut f = fs::File::options().append(true).open(path).expect("读取错误");
 
     let cfg: Result<String, String> = generate_config(config);
     
@@ -146,6 +149,8 @@ fn add_proxy(app_handle: AppHandle,config:Proxies){
         },
         Err(e)=>println!("error:{}",e)
     };
+
+    Ok(())
     // parsing_config();
 }
 
@@ -153,7 +158,7 @@ fn add_proxy(app_handle: AppHandle,config:Proxies){
 //获取解析配置文件
 #[tauri::command]
 async fn get_config(app_handle: AppHandle,name:String){
-    let config = parsing_config().await;
+    let config = parsing_config(&app_handle).await;
     match config {
         Ok(c)=>{
             app_handle.emit("get_config", &c).unwrap();
@@ -174,42 +179,63 @@ async fn get_config(app_handle: AppHandle,name:String){
 
 // 修改配置
 #[tauri::command]
-async fn change_config_by_name(app_handle: AppHandle, name:String,proxy:Proxies){
-    let mut config = parsing_config().await.unwrap();
+async fn change_config_by_name(app_handle: AppHandle, name:String,proxy:Proxies)->Result<(),String>{
+    let path = get_resource_path(&app_handle)?;
+    let mut config = parsing_config(&app_handle).await.map_err(|e|e.to_string())?;
     match change_proxy(name, &mut config, proxy){
         Ok(())=>{
-            let win = app_handle.get_webview_window("config").unwrap();
-            match write_proxy(&config, "F:\\rwx\\test.toml".to_string()).await{
+            let win = app_handle.get_webview_window("config");
+            match write_proxy(&config, path).await{
                 Ok(())=>{
                     println!("写入成功");
-                    app_handle.emit("config_updated", {});
+                    app_handle.emit("config_updated", {}).map_err(|e|e.to_string());
                     let msg = MsgType{msg_type:MessageType::Success,title:"通知".to_string(),message:"修改成功".to_string()};
-                    let _ = win.close();
+                    if let Some(win) = win {
+                        let _ = win.close();
+                    }
                     send_notification(&app_handle, msg);
                 },
                 Err(e)=>{
                     println!("写入失败:{}",e.to_string());
                     let msg = MsgType{msg_type:MessageType::Error,title:"通知".to_string(),message:"修改失败".to_string()};
-                    let _ = win.close();
+                    if let Some(win) = win {
+                        let _ = win.close();
+                    }
                     send_notification(&app_handle, msg);
+                    return Err(e.to_string());
                 }
             }         
         },
         Err(e)=>{
             println!("修改失败:{}",e);
+            return Err(e);
         }
     }
+    Ok(())
 }
 
+//修改代理的启用状态
 #[tauri::command]
-async fn delete_config(app_handle:AppHandle,proxy:Proxies){
-    let mut file_cfg = parsing_config().await.unwrap();
+async fn change_activation_status(app_handle:AppHandle,name:String)->Result<(),String>{
+    let path = get_resource_path(&app_handle)?;
+    let mut config = parsing_config(&app_handle).await.map_err(|e|e.to_string())?;
+    let _status = change_proxy_activation_status(name,&mut config)?;
+    write_proxy(&config, path).await.map_err(|e|e.to_string())?;
+    Ok(())
+}
+
+
+//删除代理
+#[tauri::command]
+async fn delete_config(app_handle:AppHandle,proxy:Proxies)->Result<(),String>{
+    let path = get_resource_path(&app_handle)?;
+    let mut file_cfg = parsing_config(&app_handle).await.unwrap();
     let result = delete_proxy(proxy.name, &mut file_cfg);
     println!("exec delect function after:{:?}",&file_cfg);
     // let win = app_handle.get_webview_window("config").unwrap();
     match result {
-        Ok(s)=>{
-            match write_proxy(&file_cfg,"F:\\rwx\\test.toml".to_string()).await{
+        Ok(_)=>{
+            match write_proxy(&file_cfg,path).await{
                 Ok(())=>{
                     let msg = MsgType{msg_type:MessageType::Success,title:"通知".to_string(),message:"删除成功".to_string()};
                     // let _ =win.close();
@@ -220,7 +246,6 @@ async fn delete_config(app_handle:AppHandle,proxy:Proxies){
                     let msg = MsgType{msg_type:MessageType::Error,title:"通知".to_string(),message:e.to_string()};
                     // let _ = win.close();
                     send_notification(&app_handle, msg);
-                    return ;
                 }
             } 
             
@@ -231,6 +256,7 @@ async fn delete_config(app_handle:AppHandle,proxy:Proxies){
             send_notification(&app_handle, msg);
         }
     }
+    Ok(())
 }
 
 #[derive(Debug,Serialize,Deserialize)]

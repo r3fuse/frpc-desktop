@@ -16,12 +16,13 @@ pub fn has_frpc_process(app_handle:&AppHandle) -> bool {
     process_guard.is_some()
 }
 
-pub fn mget_resource_path(app_handle: &AppHandle)->Result<String,String>{
+pub fn get_resource_path(app_handle: &AppHandle)->Result<String,String>{
     let resource_path = 
         app_handle.path()
             .resolve("resources/frpc.toml", BaseDirectory::Resource)
             .map(|path| path.to_string_lossy().to_string())
             .map_err(|err| err.to_string());
+    println!("{:?}",resource_path.clone()?);
     
     return resource_path;
 }
@@ -63,10 +64,23 @@ pub fn change_proxy( name:String,config:&mut Config,new_proxy:Proxies )->Result<
     return Err("修改失败".to_string());
 }
 
+//修改启用状态
+pub fn change_proxy_activation_status(name:String,config:&mut Config)->Result<(),String>{
+    for item in config.proxies.iter_mut(){
+        if item.name == name {
+           let status = item.enable.unwrap_or(true);
+           item.enable = Some(!status);
+           return Ok(());
+        }
+    }
+    return Err("更改失败".to_string());
+}
+
 //解析配置
-pub async fn parsing_config()->Result<Config,Box<dyn std::error::Error>>{
+pub async fn parsing_config(app_handle: &AppHandle)->Result<Config,Box<dyn std::error::Error>>{
+    let path = get_resource_path(app_handle)?;
     println!("开始解析");
-    let s = fs::read_to_string("F:\\rwx\\test.toml")?;
+    let s = fs::read_to_string(path)?;
     println!("文件内容是：{}",s);
     let config = toml::from_str::<Config>(&s)?;
     println!("{:?}",config);

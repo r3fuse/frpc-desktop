@@ -17,6 +17,15 @@ listen("config_updated",()=>{
     readConfig()
 })
 
+//修改启用状态
+try {
+    listen("change_activation_status",()=>{
+        readConfig()
+    })
+} catch (error) {
+    console.log(error);
+}
+
 function deleteConfig(proxy:Proxies){
     invoke("delete_config",{proxy})
 }
@@ -35,6 +44,12 @@ function readConfig(){
     invoke("get_config",{name:"test1"})
 }
 
+async function change_activation_status(name:string){
+    invoke("change_activation_status",{name}).then(()=>{
+        readConfig()
+    })
+}
+
 
 const configData  = ref<Proxies[]>([])
 
@@ -49,7 +64,6 @@ document.addEventListener("contextmenu",(e)=>{
 
 watch(selectedItem,(newValue,oldValue)=>{
     console.log("change","newValue"+newValue,"oldValue:"+oldValue);
-    
 })
 
 onMounted(()=>{
@@ -88,13 +102,14 @@ onMounted(()=>{
                 <span class="status">启用状态</span>
         </div>
         <div class="cfg"  >
-            <div class="configTitle" id="data" :class="{selected:selectedItem==item.name}" v-for="item in configData" @click="selectedItem =item.name,selectedProxy=item"  @dblclick="createNewWindow(FRPConfigOperation.Edit,item)">
+            <div class="configTitle" id="data" :class="{selected:selectedItem==item.name}" v-for="(item,index) in configData" @click="selectedItem =item.name,selectedProxy=item"  @dblclick="createNewWindow(FRPConfigOperation.Edit,item)">
                 <span class="name">{{ item.name }}</span>
                 <span class="type">{{ item.type }}</span>
                 <span class="localAddr">{{ item.localIp }}</span>
                 <span class="localPort">{{ item.localPort }}</span>
                 <span class="remote">{{ item.remotePort }}</span>
-                <span class="status" @click="item.enable=!item.enable">{{ item.enable==false?"X":"√" }}</span>
+                <!-- <span class="status" @click="item.enable=!item.enable">{{ item.enable==false?"X":"√" }}</span> -->
+                <span class="status" @click="change_activation_status(item.name)">{{ item.enable==false?"X":"√" }}</span>
             </div>
             <div class="empty" @click="selectedItem = ' ' "></div>
         </div>
