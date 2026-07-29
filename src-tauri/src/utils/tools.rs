@@ -68,8 +68,8 @@ pub fn change_proxy( name:String,config:&mut Config,new_proxy:Proxies )->Result<
 pub fn change_proxy_activation_status(name:String,config:&mut Config)->Result<(),String>{
     for item in config.proxies.iter_mut(){
         if item.name == name {
-           let status = item.enable.unwrap_or(true);
-           item.enable = Some(!status);
+           let status = item.enabled.unwrap_or(true);
+           item.enabled = Some(!status);
            return Ok(());
         }
     }

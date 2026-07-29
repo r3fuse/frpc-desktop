@@ -1,7 +1,7 @@
 interface Proxies{
     name:string,
     type:ProxyType,
-    enable?:boolean,
+    enabled?:boolean,
     localIp?:string,
     localPort?:number,
     remotePort?:number

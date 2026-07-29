@@ -17,7 +17,7 @@ pub struct MsgType{
 pub struct Proxies{
     pub name:String,
     pub r#type:ProxyType,
-    pub enable:Option<bool>,
+    pub enabled:Option<bool>,
     pub local_ip:Option<String>,
     pub local_port:Option<u16>,
     pub remote_port:Option<u16>

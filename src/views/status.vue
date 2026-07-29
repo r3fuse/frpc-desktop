@@ -102,14 +102,14 @@ onMounted(()=>{
                 <span class="status">启用状态</span>
         </div>
         <div class="cfg"  >
-            <div class="configTitle" id="data" :class="{selected:selectedItem==item.name}" v-for="(item,index) in configData" @click="selectedItem =item.name,selectedProxy=item"  @dblclick="createNewWindow(FRPConfigOperation.Edit,item)">
+            <div class="configTitle" id="data" :class="{selected:selectedItem==item.name}" v-for="item in configData" @click="selectedItem =item.name,selectedProxy=item"  @dblclick="createNewWindow(FRPConfigOperation.Edit,item)">
                 <span class="name">{{ item.name }}</span>
                 <span class="type">{{ item.type }}</span>
                 <span class="localAddr">{{ item.localIp }}</span>
                 <span class="localPort">{{ item.localPort }}</span>
                 <span class="remote">{{ item.remotePort }}</span>
                 <!-- <span class="status" @click="item.enable=!item.enable">{{ item.enable==false?"X":"√" }}</span> -->
-                <span class="status" @click="change_activation_status(item.name)">{{ item.enable==false?"X":"√" }}</span>
+                <span class="status" @click="change_activation_status(item.name)">{{ item.enabled==false?"X":"√" }}</span>
             </div>
             <div class="empty" @click="selectedItem = ' ' "></div>
         </div>
