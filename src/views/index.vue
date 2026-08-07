@@ -63,7 +63,7 @@ const status = ref<boolean>(false)
 
 <style scoped>
 .index{
-    height: 100%;
+    height: 94%;
     display: flex;
     background-color: #3b4054;
     flex-direction: column;
@@ -113,7 +113,7 @@ const status = ref<boolean>(false)
 }
 .circle.right{
     left: 62%;
-    background-color: rgb(220, 15, 15);
+    background-color: #dc0f0f;
 }
 /* .circle.green{
     background-color: #0fde16;
@@ -122,7 +122,7 @@ const status = ref<boolean>(false)
     background-color: rgb(220, 15, 15);
 } */
 .bottom{
-    flex: 3;
+    flex: 4;
     overflow: hidden;
     border-top: 2px solid #63687f;
 }

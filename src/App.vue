@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Bar from "./components/bar/index.vue"
 
 if (import.meta.env.PROD) {
   window.addEventListener("contextmenu", e => e.preventDefault(), true);
@@ -8,6 +9,7 @@ if (import.meta.env.PROD) {
 
 <template>
   <div class="app">
+    <Bar/>
     <RouterView/>
   </div>
 </template>

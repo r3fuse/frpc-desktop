@@ -3,6 +3,7 @@ import { createWebHashHistory, createRouter } from 'vue-router'
 import HomeView from '../views/index.vue'
 import Terminal from '../views/terminal.vue'
 import Config from '../views/config.vue'
+import Server from '../views/server.vue'
 
 
 const router = createRouter({
@@ -20,6 +21,10 @@ const router = createRouter({
       path: '/config/:operation', 
       name:'config',
       component: Config 
+    },{ 
+      path: '/server', 
+      name:'Server',
+      component: Server 
     }
   ],
 })
