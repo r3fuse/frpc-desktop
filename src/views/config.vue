@@ -3,7 +3,6 @@ import { onMounted, ref } from 'vue'
 import { invoke, } from '@tauri-apps/api/core'
 import { useRoute } from 'vue-router';
 import { type Proxies } from "../utils/type"
-const props = defineProps()
 const route = useRoute();
 const {operation} = route.params
 
