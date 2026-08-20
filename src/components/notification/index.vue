@@ -12,7 +12,7 @@ const props = defineProps<MsgType>()
 
 
 <template>
-    <div class="notification warning">
+    <div class="notification" :class="props.msg_type.toLocaleLowerCase()">
         {{ props.message }}
     </div>
 </template>
@@ -39,7 +39,7 @@ const props = defineProps<MsgType>()
     background-color: rgba(205, 212, 79, 0.8);
 }
 .notification.error{
-    background-color: rgba(212, 79, 92, 0.8);
+    background-color: rgba(219, 34, 52, 0.8);
 }
 
 @keyframes lineShow{

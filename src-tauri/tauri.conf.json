@@ -12,9 +12,10 @@
   "app": {
     "windows": [
       {
-        "title": "frp-gui",
         "width": 800,
-        "height": 600
+        "height": 600,
+        "decorations":false,
+        "transparent":true
       }
     ],
     "security": {

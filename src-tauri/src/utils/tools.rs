@@ -53,7 +53,7 @@ pub fn delete_proxy( name:String,config:&mut Config )->Result<(),String>{
 //修改配置
 pub fn change_proxy( name:String,config:&mut Config,new_proxy:Proxies )->Result<(),String>{
     for (index,item) in config.proxies.iter().enumerate(){
-        if item.name == name {
+        if item.name == name && item.name != "" {
             println!("匹配结果:位于{},内容是：{:?}",index,item);
             config.proxies[index] = new_proxy;
             println!("处理后：{:?}",config.proxies);
@@ -92,4 +92,29 @@ pub async fn write_proxy(data:&Config,file_path:String)->Result<(),Error>{
     let mut f = fs::File::options().truncate(true).write(true).open(file_path)?;
     let toml = toml::to_string(data).expect("写入前，转换失败");
     f.write_all(toml.as_bytes())
-} 
+}
+
+pub async fn check_name_is_exist(name:String,config:&mut Config)->bool{
+    for item in config.proxies.iter()  {
+        if item.name == name {
+             return true;
+        }
+    }
+    return false;
+}
+
+pub async fn change_server_config(app_handle: &AppHandle,config:&mut Config,server:String,port:u16)->Result<(),String>{
+    let path = get_resource_path(app_handle)?;
+    config.server_addr = server;
+    config.server_port = port;
+    match write_proxy(config,path).await{
+        Ok(_)=>{
+            println!("file write successfully!");
+            return Ok(());
+        },
+        Err(e)=>{
+            println!("file write failed:{}",e);
+            return Err("写入失败".to_string());
+        }
+    }
+}

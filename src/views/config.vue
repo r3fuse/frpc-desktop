@@ -3,15 +3,17 @@ import { onMounted, ref } from 'vue'
 import { invoke, } from '@tauri-apps/api/core'
 import { useRoute } from 'vue-router';
 import { type Proxies } from "../utils/type"
+import TitleBar from "../components/titleBar/index.vue"
+import { notification } from "../utils/notification.ts";
 const route = useRoute();
 const {operation} = route.params
 
 const inputInfo = ref<Proxies>({
-    name:"oo1",
+    name:"",
     type:"tcp",
     localIp:"localhost",
-    localPort:3389,
-    remotePort:999
+    localPort:0,
+    remotePort:0
 })
 
 
@@ -23,8 +25,13 @@ const connectType = ref(["tcp","udp","http","https"])
 
 const data = JSON.parse(localStorage.getItem("proxy") as string)
 
-function addConfig(proxy:Proxies){
-    invoke("add_proxy",{config:proxy})
+async function addConfig(proxy:Proxies){
+    try {
+        await invoke("add_proxy",{config:proxy})
+    } catch (error) {
+        console.log(error);
+        notification({msg_type:"Error",title:"error",message:(error as string).toString()})
+    }
 }
 
 function changeConfig(name:string){
@@ -32,16 +39,19 @@ function changeConfig(name:string){
     invoke("change_config_by_name",{name:name,proxy:inputInfo.value})
 }
 
-onMounted(()=>{
+onMounted(async()=>{
     console.log(route.params);
     console.log(inputInfo.value);
     console.log(data);
 })
 
+
+
 </script>
 
 <template>
    <div class="proxy">
+        <TitleBar/>
         <div class="innerBox" >
             <div class="name item">
                 <label for="name">名称：</label><input type="text" id="name" v-model="inputInfo.name" autocomplete="off">
@@ -65,8 +75,8 @@ onMounted(()=>{
                     autocomplete="off">
             </div>
             <div class="btn">
-                <button @click="addConfig(inputInfo)">保存</button>
-                <button @click="changeConfig(data.name)">修改</button>
+                <button @click="addConfig(inputInfo)" v-if="operation == 'Create'">保存</button>
+                <button @click="changeConfig(data.name)" v-if="operation == 'Edit'" >修改</button>
             </div>
         </div>
     </div>
@@ -74,9 +84,6 @@ onMounted(()=>{
 
 
 <style scoped>
-body{
-    background-color: rgb(59, 64, 84);
-}
 .item{
     display: flex;
     margin: 0.6rem 0;
@@ -86,10 +93,12 @@ body{
 }
 .proxy{
     width: 100%;
+    height: 100%;
     color: whitesmoke;
-    background-color: rgb(59, 64, 84);
+    background-color: rgb(70, 76, 100);
     font-size: small;
     font-weight: bold;
+    box-sizing: border-box;
 }
 .innerBox{
     width: 80%;

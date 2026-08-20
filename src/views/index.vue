@@ -2,6 +2,8 @@
 import { ref } from "vue";
 import terminal from "./terminal.vue";
 import Status from "./status.vue";
+import Bar from "../components/bar/index.vue"
+import TitleBar from "../components/titleBar/index.vue"
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { notification } from "../utils/notification.ts";
@@ -36,11 +38,14 @@ function move_circle(){
 
 const status = ref<boolean>(false)
 
+
 </script>
 
 <template>
     <div class="index">
-        <div class="top">
+        <TitleBar/>
+        <Bar/>
+        <div class="controller">
             <div class="btn">
                 <span>FRP</span>
                 <div class="control"  @click="(status=!status)?start():stop(),move_circle()">
@@ -51,9 +56,9 @@ const status = ref<boolean>(false)
                     </div>
                 </div>
             </div>
-            <div class="status">
-                <Status/>
-            </div>
+        </div>
+        <div class="status">
+            <Status/>
         </div>
         <div class="bottom">
             <terminal/>
@@ -63,19 +68,18 @@ const status = ref<boolean>(false)
 
 <style scoped>
 .index{
-    height: 94%;
+    max-height: 100vh;
+    height: 100vh;
     display: flex;
     background-color: #3b4054;
     flex-direction: column;
+    box-sizing: border-box;
 }
-.top{
-    padding: 1rem;
-    flex: 6;
+.controller{
+    padding:0 1rem .4rem 1rem;
+    height: 26px;
     display: flex;
     flex-direction: column;
-}
-.nav{
-    margin: 1rem 0;
 }
 .btn{
     /* position: relative; */
@@ -115,20 +119,15 @@ const status = ref<boolean>(false)
     left: 62%;
     background-color: #dc0f0f;
 }
-/* .circle.green{
-    background-color: #0fde16;
-}
-.circle.red{
-    background-color: rgb(220, 15, 15);
-} */
-.bottom{
-    flex: 4;
-    overflow: hidden;
-    border-top: 2px solid #63687f;
-}
-
 .status{
-    flex: 1;
+    height: 50%;
+    padding: 0 1rem .4rem 1rem;
+    box-sizing: border-box;
 }
-
+.bottom{
+    flex: 1;
+    box-sizing: border-box;
+    border-top: 2px solid #63687f;
+    overflow: hidden;
+}
 </style>

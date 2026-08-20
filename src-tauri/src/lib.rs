@@ -2,21 +2,21 @@
 use tauri_plugin_shell::ShellExt;
 use tauri::{AppHandle, Emitter};
 use tauri_plugin_shell::process::CommandEvent;
-use tauri_plugin_shell::process::{ Command, CommandChild};
-use tauri::{path::BaseDirectory,Manager};
+use tauri::{Manager};
 use std::io::Write;
 use std::sync::Mutex;
 use serde::{Deserialize, Serialize};
 use std::fs;
 mod utils;
-use utils::tools::{has_frpc_process,get_resource_path,generate_config,change_proxy,delete_proxy,write_proxy,parsing_config,change_proxy_activation_status,AppState};
-use utils::proxies::{Config,Proxies,MsgType,ProxyType};
-use memory_stats::memory_stats;
-use sysinfo::{
-    Components, Disks, Networks, Pid
-};
+use utils::tools::{has_frpc_process,get_resource_path,generate_config,change_server_config,
+    change_proxy,delete_proxy,write_proxy,parsing_config,change_proxy_activation_status,check_name_is_exist,
+    AppState};
+use utils::proxies::{Proxies,MsgType};
+// use sysinfo::{
+//     Components, Disks, Networks, Pid
+// };
 
-use crate::utils::proxies::MessageType::{self, Error, Success};
+use crate::utils::proxies::MessageType::{self};
 
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -28,8 +28,8 @@ pub fn run() {
         })
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![start_frp,stop_frp,open_config_window,add_proxy,
-                        delete_config,change_config_by_name,get_config,create_window,
+        .invoke_handler(tauri::generate_handler![start_frp,stop_frp,add_proxy,
+                        delete_config,change_config_by_name,get_config,create_window,change_server,
                         get_momery_usage,change_activation_status])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -113,14 +113,48 @@ fn stop_frp(app_handle: tauri::AppHandle) {
 }
 
 
+// #[tauri::command]
+// async fn open_config_window(app_handle: AppHandle){
+//     let config_window = tauri::WebviewWindowBuilder::new(&app_handle, "local", tauri::WebviewUrl::App("index.html".into())).build().unwrap();
+// }
+
+//修改服务器配置
 #[tauri::command]
-async fn open_config_window(app_handle: AppHandle){
-    let config_window = tauri::WebviewWindowBuilder::new(&app_handle, "local", tauri::WebviewUrl::App("index.html".into())).build().unwrap();
+async fn change_server(app_handle: AppHandle,server_addr:String,server_port:u16)->Result<(),String>{
+    let path = get_resource_path(&app_handle)?;
+    let mut config = parsing_config(&app_handle).await.map_err(|e|e.to_string())?;
+    change_server_config(&app_handle,&mut config,server_addr,server_port).await?;
+    match write_proxy(&config, path).await {
+        Ok(_) => {
+            let title = String::from("服务器配置发生变动");
+            let msg = String::from("修改成功");
+            let m = MsgType{msg_type:MessageType::Success,title:title,message:msg};
+            send_notification(&app_handle, m);
+        }
+        Err(e) => {
+            println!("file write failed: {}", e);
+            let title: String = String::from("服务器配置发生变动");
+            let msg = String::from("修改失败");
+            let m = MsgType{msg_type:MessageType::Success,title:title,message:msg};
+            send_notification(&app_handle, m);
+            return Err("写入失败".to_string());
+        }
+    }
+    Ok(())
 }
 
 //添加代理
 #[tauri::command]
-fn add_proxy(app_handle: AppHandle,config:Proxies)->Result<(),String> {
+async fn add_proxy(app_handle: AppHandle,config:Proxies)->Result<(),String> {
+
+    if config.name.is_empty() {
+        return Err("名称不得为空".to_string());
+    }
+    let mut parsing_result = parsing_config(&app_handle).await.map_err(|e| e.to_string())?;
+    if check_name_is_exist(config.name.clone(),&mut parsing_result).await {
+        return Err("添加失败！！！存在相同名称".to_string());
+    }
+
     let path = get_resource_path(&app_handle)?;
     let mut f = fs::File::options().append(true).open(path).expect("读取错误");
 
@@ -135,7 +169,7 @@ fn add_proxy(app_handle: AppHandle,config:Proxies)->Result<(),String> {
     };
 
     match f.write_all(&cfg.as_bytes()){
-        Ok(s)=>{
+        Ok(_)=>{
             println!("file write successfully!");
             let title = String::from("配置发生变动");
             let msg = String::from("新增成功");
@@ -188,7 +222,7 @@ async fn change_config_by_name(app_handle: AppHandle, name:String,proxy:Proxies)
             match write_proxy(&config, path).await{
                 Ok(())=>{
                     println!("写入成功");
-                    app_handle.emit("config_updated", {}).map_err(|e|e.to_string());
+                    let _ = app_handle.emit("config_updated", {}).map_err(|e|e.to_string());
                     let msg = MsgType{msg_type:MessageType::Success,title:"通知".to_string(),message:"修改成功".to_string()};
                     if let Some(win) = win {
                         let _ = win.close();
@@ -266,15 +300,22 @@ enum FRPConfigOperation{
 
 #[tauri::command]
 async fn create_window(app: tauri::AppHandle,operation:FRPConfigOperation,proxy:Proxies) {
+    if let Some(config_window) = app.get_webview_window("config") {
+        let _ = config_window
+            .set_focus()
+            .map_err(|e| e.to_string());
+        return ;
+    }
     let url = format!("/#/config/{:?}",operation);
-    let webview_window = tauri::WebviewWindowBuilder::new(&app, "config", tauri::WebviewUrl::App(url.into()))
+    let _: tauri::WebviewWindow = tauri::WebviewWindowBuilder::new(&app, "config", tauri::WebviewUrl::App(url.into()))
         .title("配置管理")
         .resizable(false)
-        .inner_size(360.0, 250.0)
+        .inner_size(420.0, 340.0)
         .center()
+        .decorations(false)
         .build()
         .unwrap();
-    app.emit("proxy", proxy);
+    let _ = app.emit("proxy", proxy);
 }
 
 #[tauri::command]

@@ -3,3 +3,8 @@
     --lightBlue:#3b4054;
     --darkBlue:#303446;
 }
+
+html,body,#app{
+    border-radius: 12px 12px 0 0 ;
+    overflow: hidden;
+}

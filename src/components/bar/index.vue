@@ -15,6 +15,11 @@
                     配置
                 </RouterLink>
             </li>
+            <li>
+                <RouterLink to="about">
+                    关于
+                </RouterLink>
+            </li>
         </ul>
     </div>
 </template>
@@ -29,7 +34,11 @@ a{
     width: fit-content;
     background-color: var(--lightBlue);
     margin: 1rem 1rem 0 2rem;
+    /* padding-top: 2rem; */
     font-weight: bold;
+    font-size: medium;
+    box-sizing: border-box;
+    position: sticky;
 }
 .bar ul{
     margin: 0;

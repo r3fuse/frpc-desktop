@@ -125,6 +125,8 @@ onMounted(()=>{
     position: relative;
     box-sizing: border-box;
     padding: 0 0.4rem;
+    display: flex;
+    flex-direction: column;
 }
 .ip{
     position: absolute;
@@ -158,7 +160,8 @@ onMounted(()=>{
 }
 .cfg{
     width: 100%;
-    height: 74%;
+    margin-bottom: .6rem;
+    flex: 1;
     border: 1px solid #666;
     overflow: hidden;
     overflow-y: scroll;
@@ -166,6 +169,7 @@ onMounted(()=>{
     scrollbar-color: #ca9ee5 #3b4054 ;
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
 }
 .empty{
     flex: 1;

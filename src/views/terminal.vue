@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { listen } from "@tauri-apps/api/event";
-import { ref } from "vue";
+import { ref,useTemplateRef } from "vue";
 
 const log = ref<string[]>([]);
 listen("frp-log", (event) => {
@@ -20,12 +20,9 @@ function goTop() {
         logElement.scrollTop = 0;
     }
 }
-
+const buttom = useTemplateRef("bottom")
 function goBottom() {
-    const logElement = document.querySelector("#bottom");
-    if (logElement) {
-        logElement.scrollIntoView({ behavior: "smooth" });
-    }
+    buttom.value?.scrollIntoView({block:"end",behavior:"smooth"});
 }
 
 </script>
@@ -39,7 +36,7 @@ function goBottom() {
         <div class="log">
             <ul>
                 <li v-for="line in log" :key="line">{{ line }}</li>
-                <span id="bottom"></span>
+                <span ref="bottom"></span>
             </ul>
             <!-- <p id="bottom"></p> -->
         </div>
@@ -52,9 +49,9 @@ a{
     text-decoration: none;
 }
 
-
 .terminal{
     height: 100%;
+    max-height: 100%;
     background-color: rgb(48, 52, 70);
     padding: 0.8rem;
     box-sizing: border-box;
