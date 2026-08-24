@@ -27,7 +27,20 @@ pub struct Proxies{
 pub struct Config{
     pub server_addr:String,
     pub server_port:u16,
-    pub proxies:Vec<Proxies>
+    pub proxies:Option<Vec<Proxies>>,
+    pub auth:Option<AuthClientConfig>
+}
+
+#[derive(Debug,Serialize, Deserialize,Clone,Copy)]
+#[serde(rename_all="camelCase")]
+pub enum AuthClientMethod{
+    Token,Oidc
+}
+
+#[derive(Debug,Serialize, Deserialize)]
+pub struct AuthClientConfig{
+    pub method:AuthClientMethod,
+    pub token:Option<String>
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

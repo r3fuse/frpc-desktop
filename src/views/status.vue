@@ -1,123 +1,152 @@
 <script setup lang="ts">
-import { invoke } from '@tauri-apps/api/core';
-import { listen } from '@tauri-apps/api/event';
-import { ref,onMounted, watch } from 'vue';
-enum FRPConfigOperation{
-    Create="Create",
-    Edit="Edit",
-    Delete="Delete"
+import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
+import { ref, onMounted, watch } from "vue";
+enum FRPConfigOperation {
+    Create = "Create",
+    Edit = "Edit",
+    Delete = "Delete",
 }
 
-listen("get_config",(data)=>{
-    console.log("获取的数据是：",data.payload);
-    configData.value = (data.payload as Config).proxies
-})
+listen("get_config", (data) => {
+    console.log("获取的数据是：", data.payload);
+    configData.value = data.payload as Config;
+});
 
-listen("config_updated",()=>{
-    readConfig()
-})
+listen("config_updated", () => {
+    readConfig();
+});
 
 //修改启用状态
 try {
-    listen("change_activation_status",()=>{
-        readConfig()
-    })
+    listen("change_activation_status", () => {
+        readConfig();
+    });
 } catch (error) {
     console.log(error);
 }
 
-function deleteConfig(proxy:Proxies){
-    invoke("delete_config",{proxy})
+function deleteConfig(proxy: Proxies) {
+    invoke("delete_config", { proxy });
 }
 
 const selectedItem = ref<string>("");
 const selectedProxy = ref<Proxies>({
-    name:"unknow",
-    type:"http",
-    localIp:"127.0.0.1",
-    localPort:65535,
-    remotePort:65535
-})
-const isShowIp = ref(false)
+    name: "unknow",
+    type: "http",
+    localIp: "127.0.0.1",
+    localPort: 65535,
+    remotePort: 65535,
+});
+const isShowIp = ref(false);
 
-function readConfig(){
-    invoke("get_config",{name:"test1"})
+function readConfig() {
+    invoke("get_config", { name: "test1" });
 }
 
-async function change_activation_status(name:string){
-    invoke("change_activation_status",{name}).then(()=>{
-        readConfig()
-    })
+async function change_activation_status(name: string) {
+    invoke("change_activation_status", { name }).then(() => {
+        readConfig();
+    });
 }
 
+const configData = ref<Config>();
 
-const configData  = ref<Proxies[]>([])
-
-function createNewWindow(operation:FRPConfigOperation,proxy:Proxies){
-    localStorage.setItem("proxy",JSON.stringify(proxy))
-    invoke("create_window",{operation:operation,proxy:proxy})
+function createNewWindow(operation: FRPConfigOperation, proxy: Proxies) {
+    localStorage.setItem("proxy", JSON.stringify(proxy));
+    invoke("create_window", { operation: operation, proxy: proxy });
 }
 
-document.addEventListener("contextmenu",(e)=>{
-    e.preventDefault()
-})
+document.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+});
 
-watch(selectedItem,(newValue,oldValue)=>{
-    console.log("change","newValue"+newValue,"oldValue:"+oldValue);
-})
+watch(selectedItem, (newValue, oldValue) => {
+    console.log("change", "newValue" + newValue, "oldValue:" + oldValue);
+});
 
-onMounted(()=>{
-    readConfig()
-    const lists = document.querySelector("#data")
+onMounted(() => {
+    readConfig();
+    const lists = document.querySelector("#data");
     console.log(lists);
-})
-
+});
 </script>
 
 <template>
     <div class="config">
-        <div class="ip" @click="isShowIp=!isShowIp">
-            <span style="color: #ca9ee5;font-size: small;font-weight: bold;">服务器地址：</span>
-            <span style="color: white;" v-show="isShowIp">8.1.2.200</span>
-            <span style="color: white;" v-show="!isShowIp">*******</span>
+        <div class="ip" @click="isShowIp = !isShowIp">
+            <span style="color: #ca9ee5; font-size: small; font-weight: bold"
+                >服务器地址：</span
+            >
+            <span style="color: white" v-show="isShowIp">{{
+                configData?.serverAddr
+            }}</span>
+            <span style="color: white" v-show="!isShowIp">*******</span>
         </div>
         <!-- <h1>setting</h1> -->
         <div class="tools">
-                <div class="item" @click="createNewWindow(FRPConfigOperation.Create,selectedProxy as Proxies)">
-                    <img src="../assets/add.svg" alt="" ><span>添加</span>
-                </div>
-                <div class="item" @click="createNewWindow(FRPConfigOperation.Edit,selectedProxy as Proxies)">
-                    <img src="../assets/edit.svg" alt=""><span>编辑</span>
-                </div>
-                <div class="item" @click="deleteConfig(selectedProxy)">
-                    <img src="../assets/remove.svg" alt=""><span>删除</span>
-                </div>
+            <div
+                class="item"
+                @click="
+                    createNewWindow(
+                        FRPConfigOperation.Create,
+                        selectedProxy as Proxies,
+                    )
+                "
+            >
+                <img src="../assets/add.svg" alt="" /><span>添加</span>
+            </div>
+            <div
+                class="item"
+                @click="
+                    createNewWindow(
+                        FRPConfigOperation.Edit,
+                        selectedProxy as Proxies,
+                    )
+                "
+            >
+                <img src="../assets/edit.svg" alt="" /><span>编辑</span>
+            </div>
+            <div class="item" @click="deleteConfig(selectedProxy)">
+                <img src="../assets/remove.svg" alt="" /><span>删除</span>
+            </div>
         </div>
         <div class="configTitle" id="title">
-                <span class="name">名称</span>
-                <span class="type">类型</span>
-                <span class="localAddr">本地地址</span>
-                <span class="localPort">本地端口</span>
-                <span class="remote">远程端口</span>
-                <span class="status">启用状态</span>
+            <span class="name">名称</span>
+            <span class="type">类型</span>
+            <span class="localAddr">本地地址</span>
+            <span class="localPort">本地端口</span>
+            <span class="remote">远程端口</span>
+            <span class="status">启用状态</span>
         </div>
-        <div class="cfg"  >
-            <div class="configTitle" id="data" :class="{selected:selectedItem==item.name}" v-for="item in configData" @click="selectedItem =item.name,selectedProxy=item"  @dblclick="createNewWindow(FRPConfigOperation.Edit,item)">
+        <div class="cfg">
+            <div
+                class="configTitle"
+                id="data"
+                :class="{ selected: selectedItem == item.name }"
+                v-for="item in configData?.proxies"
+                @click="((selectedItem = item.name), (selectedProxy = item))"
+                @dblclick="createNewWindow(FRPConfigOperation.Edit, item)"
+            >
                 <span class="name">{{ item.name }}</span>
                 <span class="type">{{ item.type }}</span>
                 <span class="localAddr">{{ item.localIp }}</span>
                 <span class="localPort">{{ item.localPort }}</span>
                 <span class="remote">{{ item.remotePort }}</span>
                 <!-- <span class="status" @click="item.enable=!item.enable">{{ item.enable==false?"X":"√" }}</span> -->
-                <span class="status" @click="change_activation_status(item.name)">{{ item.enabled==false?"X":"√" }}</span>
+                <span
+                    class="status"
+                    @click="change_activation_status(item.name)"
+                    >{{ item.enabled == false ? "X" : "√" }}</span
+                >
             </div>
-            <div class="empty" @click="selectedItem = ' ' "></div>
+            <div class="empty" @click="selectedItem = ' '"></div>
         </div>
     </div>
 </template>
 
 <style scoped>
-.config{
+.config {
     width: 100%;
     height: 100%;
     user-select: none;
@@ -128,7 +157,7 @@ onMounted(()=>{
     display: flex;
     flex-direction: column;
 }
-.ip{
+.ip {
     position: absolute;
     top: -0.8rem;
     left: 0.4rem;
@@ -136,7 +165,7 @@ onMounted(()=>{
     padding: 0 0.6rem;
     cursor: pointer;
 }
-.tools{
+.tools {
     margin-top: 1rem;
     width: 100%;
     color: white;
@@ -145,42 +174,42 @@ onMounted(()=>{
     cursor: pointer;
     padding-left: 0.4rem;
 }
-.tools span:hover{
+.tools span:hover {
     color: #ccc;
 }
-.tools .item{
+.tools .item {
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: small;
 }
-.tools .item img{
+.tools .item img {
     width: 1rem;
     height: 1rem;
 }
-.cfg{
+.cfg {
     width: 100%;
-    margin-bottom: .6rem;
+    margin-bottom: 0.6rem;
     flex: 1;
     border: 1px solid #666;
     overflow: hidden;
     overflow-y: scroll;
     scrollbar-width: thin;
-    scrollbar-color: #ca9ee5 #3b4054 ;
+    scrollbar-color: #ca9ee5 #3b4054;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
 }
-.empty{
+.empty {
     flex: 1;
 }
-#title{
+#title {
     font-weight: bold;
     padding: 4px 0;
     color: #ca9ee5;
     font-size: small;
 }
-.configTitle{
+.configTitle {
     width: 98%;
     display: flex;
     justify-content: space-around;
@@ -189,25 +218,25 @@ onMounted(()=>{
     padding: 0 2px;
     position: relative;
 }
-.cfg .configTitle span{
+.cfg .configTitle span {
     border-right: 2px solid #ccc;
     padding-left: 6px;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-#data:hover{
+#data:hover {
     background-color: #54586d;
 }
-.selected{
+.selected {
     background-color: #54586d;
 }
-.configTitle span{
+.configTitle span {
     padding-left: 1rem;
     border-right: 0;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.menu{
+.menu {
     width: 6rem;
     position: absolute;
     left: 8rem;
@@ -216,43 +245,44 @@ onMounted(()=>{
     z-index: 999;
     font-size: small;
     border: 1px solid #686e83;
-    box-shadow: 1px 2px 1px 1px #8e8e8e8e,
-                1px 1px 1px 1px #f2f2f2;
+    box-shadow:
+        1px 2px 1px 1px #8e8e8e8e,
+        1px 1px 1px 1px #f2f2f2;
 }
-.menu>ul{
+.menu > ul {
     list-style: none;
     padding: 0;
 }
-.menu>ul>li{
+.menu > ul > li {
     padding: 0 1rem;
 }
-.menu>ul>li:hover{
+.menu > ul > li:hover {
     cursor: pointer;
     background-color: #6a6e81;
 }
-.name{
+.name {
     flex: 3;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.type{
+.type {
     flex: 1;
 }
-.localAddr{
+.localAddr {
     flex: 3;
 }
-.localPort{
+.localPort {
     flex: 3;
 }
-.remote{
+.remote {
     flex: 3;
 }
-.configTitle .status{
+.configTitle .status {
     flex: 2;
     border-right: none;
     cursor: pointer;
 }
-.title{
+.title {
     padding-right: 3rem;
     display: flex;
     justify-content: space-between;

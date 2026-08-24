@@ -16,6 +16,7 @@ use utils::proxies::{Proxies,MsgType};
 //     Components, Disks, Networks, Pid
 // };
 
+use crate::utils::proxies::Config;
 use crate::utils::proxies::MessageType::{self};
 
 
@@ -120,10 +121,10 @@ fn stop_frp(app_handle: tauri::AppHandle) {
 
 //修改服务器配置
 #[tauri::command]
-async fn change_server(app_handle: AppHandle,server_addr:String,server_port:u16)->Result<(),String>{
+async fn change_server(app_handle: AppHandle,new_config:Config)->Result<(),String>{
     let path = get_resource_path(&app_handle)?;
     let mut config = parsing_config(&app_handle).await.map_err(|e|e.to_string())?;
-    change_server_config(&app_handle,&mut config,server_addr,server_port).await?;
+    change_server_config(&app_handle,&mut config,new_config).await?;
     match write_proxy(&config, path).await {
         Ok(_) => {
             let title = String::from("服务器配置发生变动");

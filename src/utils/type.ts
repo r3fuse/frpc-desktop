@@ -10,7 +10,15 @@ export interface Proxies{
 export interface Config{
     serverAddr:string,
     serverPort:number,
-    proxies:Proxies[]
+    proxies?:Proxies[],
+    auth?:AuthClientConfig
+}
+
+type AuthMethod = "token"|"oidc"
+
+interface AuthClientConfig{
+    method:AuthMethod
+    token?:string|null
 }
 
 export type ProxyType = "tcp"|"udp"|"http"|"https"
