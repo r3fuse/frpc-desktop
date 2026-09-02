@@ -64,25 +64,17 @@ pub fn delete_proxy( name:String,config:&mut Config )->Result<(),String>{
 }
 
 //修改配置
-pub fn change_proxy( name:String,config:&mut Config,new_proxy:Proxies )->Result<(),String>{
-    if let Some(proxies) = config.proxies.as_mut(){
-        if let Some(index) = proxies.iter().position(|item| item.name == name){
-            proxies[index] = new_proxy;
-            return Ok(());
+pub fn change_proxy( app_handle: &AppHandle,name:String,new_proxy:Proxies )->Result<(),String>{
+    let state = app_handle.state::<AppState>();
+    let mut data = state.config.lock().unwrap();
+    if let Some(proxies) = data.data_mut().proxies.as_mut(){
+        if let Some(proxy) = proxies.iter_mut().find(|p| p.name ==name){
+            *proxy = new_proxy;
+            data.save();
+            return Ok(()) ; 
         }
     }
-
-
-    // for (index,item) in config.proxies.iter().enumerate(){
-    //     if item.name == name && item.name != "" {
-    //         println!("匹配结果:位于{},内容是：{:?}",index,item);
-    //         config.proxies[index] = new_proxy;
-    //         println!("处理后：{:?}",config.proxies);
-    //         return Ok(());
-    //     }
-    // }
-    println!("处理后：{:?}",config.proxies);
-    return Err("修改失败".to_string());
+    Err("No match".into())
 }
 
 //修改启用状态

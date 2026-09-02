@@ -238,30 +238,14 @@ async fn get_config(app_handle: AppHandle,name:String){
 #[tauri::command]
 async fn change_config_by_name(app_handle: AppHandle, name:String,proxy:Proxies)->Result<(),String>{
     // let path = get_resource_path(&app_handle)?;
-    let mut config = parsing_config(&app_handle).await.map_err(|e|e.to_string())?;
-    match change_proxy(name, &mut config, proxy){
+    // let mut config = parsing_config(&app_handle).await.map_err(|e|e.to_string())?;
+    match change_proxy(&app_handle,name, proxy){
         Ok(())=>{
             let win = app_handle.get_webview_window("config");
-            match write_proxy(&app_handle,&mut config).await{
-                Ok(())=>{
-                    println!("写入成功");
-                    let _ = app_handle.emit("config_updated", {}).map_err(|e|e.to_string());
-                    let msg = MsgType{msg_type:MessageType::Success,title:"通知".to_string(),message:"修改成功".to_string()};
-                    if let Some(win) = win {
-                        let _ = win.close();
-                    }
-                    send_notification(&app_handle, msg);
-                },
-                Err(e)=>{
-                    println!("写入失败:{}",e.to_string());
-                    let msg = MsgType{msg_type:MessageType::Error,title:"通知".to_string(),message:"修改失败".to_string()};
-                    if let Some(win) = win {
-                        let _ = win.close();
-                    }
-                    send_notification(&app_handle, msg);
-                    return Err(e.to_string());
-                }
-            }         
+            if let Some(win) = win {
+                let _ = win.close();
+                let _ = app_handle.emit("config_updated", {});
+            }    
         },
         Err(e)=>{
             println!("修改失败:{}",e);
