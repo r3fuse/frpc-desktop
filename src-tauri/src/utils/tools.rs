@@ -1,12 +1,14 @@
 use tauri::{AppHandle};
 use tauri_plugin_shell::process::{ CommandChild};
-use std::{io::{Error, Write}, sync::Mutex};
+use std::{ sync::Mutex};
 use tauri::{path::BaseDirectory,Manager};
 use crate::utils::proxies::{Config, Proxies};
 use std::fs;
+use anyhow::{Result};
 
 pub struct AppState {
     pub frpc_process: Mutex<Option<CommandChild>>,
+    pub config: Mutex<crate::config_store::ConfigStore>
 }
 
 pub fn has_frpc_process(app_handle:&AppHandle) -> bool {
@@ -111,7 +113,7 @@ pub async fn parsing_config(app_handle: &AppHandle)->Result<Config,Box<dyn std::
     println!("文件内容是：{}",s);
     println!("文件内容是否为空：{}",s.is_empty());
     if s.is_empty() {
-        match init_server_base(path).await {
+        match init_server_base(app_handle).await {
             Ok(v)=>return Ok(v),
             Err(_)=>{
                 panic!("初始化失败！");
@@ -124,10 +126,18 @@ pub async fn parsing_config(app_handle: &AppHandle)->Result<Config,Box<dyn std::
 }
 
 
-pub async fn write_proxy(data:&Config,file_path:String)->Result<(),Error>{
-    let mut f = fs::File::options().truncate(true).write(true).open(file_path)?;
-    let toml = toml::to_string(data).expect("写入前，转换失败");
-    f.write_all(toml.as_bytes())
+// pub async fn write_proxy(data:&Config,file_path:String)->Result<(),Error>{
+//     let mut f = fs::File::options().truncate(true).write(true).open(file_path)?;
+//     let toml = toml::to_string(data).expect("写入前，转换失败");
+//     f.write_all(toml.as_bytes())
+// }
+
+pub async fn write_proxy(app_handle: &AppHandle,data:&mut Config)->Result<()>{
+    let state = app_handle.state::<AppState>();
+    let mut config = state.config.lock().unwrap();
+    *config.data_mut() = data.clone();
+    config.save()?;
+    Ok(())
 }
 
 pub async fn check_name_is_exist(name:String,config:&mut Config)->bool{
@@ -146,13 +156,13 @@ pub async fn check_name_is_exist(name:String,config:&mut Config)->bool{
 }
 
 pub async fn change_server_config(app_handle: &AppHandle,config:&mut Config,new_config:Config)->Result<(),String>{
-    let path = get_resource_path(app_handle)?;
+    // let path = get_resource_path(app_handle)?;
     config.server_addr = new_config.server_addr;
     config.server_port = new_config.server_port;
     config.auth = new_config.auth;
     println!("config:{:?}",config);
     // println!("new_config.auth:{:?}",new_config.auth);
-    match write_proxy(config,path).await{
+    match write_proxy(app_handle,config).await{
         Ok(_)=>{
             println!("file write successfully!");
             return Ok(());
@@ -164,15 +174,15 @@ pub async fn change_server_config(app_handle: &AppHandle,config:&mut Config,new_
     }
 }
 
-async fn init_server_base(path:String)->Result<Config,String>{
+async fn init_server_base(app_handle: &AppHandle)->Result<Config,String>{
     println!("start init_server_base");
-    let config = Config{
+    let mut config = Config{
         server_addr:"example.com".into(),
         server_port:3389,
         proxies:None,
         auth:None
     };
-    match write_proxy(&config,path).await {
+    match write_proxy(app_handle,&mut config).await {
         Ok(_)=>return Ok(config),
         Err(e)=> return Err(e.to_string())
     } 

@@ -12,10 +12,13 @@ use utils::tools::{has_frpc_process,get_resource_path,generate_config,change_ser
     change_proxy,delete_proxy,write_proxy,parsing_config,change_proxy_activation_status,check_name_is_exist,
     AppState};
 use utils::proxies::{Proxies,MsgType};
+use config_store::ConfigStore;
+use anyhow::{Result, anyhow};
 // use sysinfo::{
 //     Components, Disks, Networks, Pid
 // };
 
+use crate::utils::config_store;
 use crate::utils::proxies::Config;
 use crate::utils::proxies::MessageType::{self};
 
@@ -24,7 +27,13 @@ use crate::utils::proxies::MessageType::{self};
 pub fn run() {
     tauri::Builder::default()
         .setup(|app|{
-            app.manage(AppState { frpc_process: Mutex::new(None) });
+
+            let config = ConfigStore::new().expect("config init error!");
+
+            app.manage(AppState { 
+                frpc_process: Mutex::new(None),
+                config: Mutex::new(config),
+            });
             Ok(())
         })
         .plugin(tauri_plugin_shell::init())
@@ -122,10 +131,10 @@ fn stop_frp(app_handle: tauri::AppHandle) {
 //修改服务器配置
 #[tauri::command]
 async fn change_server(app_handle: AppHandle,new_config:Config)->Result<(),String>{
-    let path = get_resource_path(&app_handle)?;
+    // let path = get_resource_path(&app_handle)?;
     let mut config = parsing_config(&app_handle).await.map_err(|e|e.to_string())?;
     change_server_config(&app_handle,&mut config,new_config).await?;
-    match write_proxy(&config, path).await {
+    match write_proxy(&app_handle,&mut config).await {
         Ok(_) => {
             let title = String::from("服务器配置发生变动");
             let msg = String::from("修改成功");
@@ -151,39 +160,47 @@ async fn add_proxy(app_handle: AppHandle,config:Proxies)->Result<(),String> {
     if config.name.is_empty() {
         return Err("名称不得为空".to_string());
     }
-    let mut parsing_result = parsing_config(&app_handle).await.map_err(|e| e.to_string())?;
+    let mut parsing_result = parsing_config(&app_handle).await.map_err(|e|e.to_string())?;
     if check_name_is_exist(config.name.clone(),&mut parsing_result).await {
         return Err("添加失败！！！存在相同名称".to_string());
     }
+    let state = app_handle.state::<AppState>();
+    let mut config_guard = state.config.lock().unwrap();
+    config_guard.data_mut().proxies.get_or_insert_with(Vec::new).push(config);
+    let _ = config_guard.save();
+    if let Some(win) = app_handle.get_webview_window("config"){
+        app_handle.emit("config_updated",{}).unwrap();
+        let _ = win.close();
+    }
 
-    let path = get_resource_path(&app_handle)?;
-    let mut f = fs::File::options().append(true).open(path).expect("读取错误");
+    // let path = get_resource_path(&app_handle)?;
+    // let mut f = fs::File::options().append(true).open(path).expect("读取错误");
 
-    let cfg: Result<String, String> = generate_config(config);
+    // let cfg: Result<String, String> = generate_config(config);
     
-    let cfg = match cfg{
-        Ok(v)=>v,
-        Err(e)=>{
-            println!("配置生成异常，{}",e);
-            panic!("配置生成异常")
-        },
-    };
+    // let cfg = match cfg{
+    //     Ok(v)=>v,
+    //     Err(e)=>{
+    //         println!("配置生成异常，{}",e);
+    //         panic!("配置生成异常")
+    //     },
+    // };
 
-    match f.write_all(&cfg.as_bytes()){
-        Ok(_)=>{
-            println!("file write successfully!");
-            let title = String::from("配置发生变动");
-            let msg = String::from("新增成功");
-            let m = MsgType{msg_type:MessageType::Success,title:title,message:msg};
-            send_notification(&app_handle, m);
-            // println!("{:?}", app_handle.webview_windows());
-            app_handle.emit("config_updated",{}).unwrap();
-            if let Some(win) = app_handle.get_webview_window("config"){
-                let _ = win.close();
-            };
-        },
-        Err(e)=>println!("error:{}",e)
-    };
+    // match f.write_all(&cfg.as_bytes()){
+    //     Ok(_)=>{
+    //         println!("file write successfully!");
+    //         let title = String::from("配置发生变动");
+    //         let msg = String::from("新增成功");
+    //         let m = MsgType{msg_type:MessageType::Success,title:title,message:msg};
+    //         send_notification(&app_handle, m);
+    //         // println!("{:?}", app_handle.webview_windows());
+    //         app_handle.emit("config_updated",{}).unwrap();
+    //         if let Some(win) = app_handle.get_webview_window("config"){
+    //             let _ = win.close();
+    //         };
+    //     },
+    //     Err(e)=>println!("error:{}",e)
+    // };
 
     Ok(())
     // parsing_config();
@@ -193,16 +210,21 @@ async fn add_proxy(app_handle: AppHandle,config:Proxies)->Result<(),String> {
 //获取解析配置文件
 #[tauri::command]
 async fn get_config(app_handle: AppHandle,name:String){
-    let config = parsing_config(&app_handle).await;
-    match config {
-        Ok(c)=>{
-            app_handle.emit("get_config", &c).unwrap();
-            println!("get name parameters:{}",name);
-        },
-        Err(e)=>{
-            println!("{}",e);
-        }
-    };
+    let state = app_handle.state::<AppState>();
+    let config_guard = state.config.lock().unwrap();
+    let config = config_guard.data();
+    app_handle.emit("get_config", &config).unwrap();
+    
+    // let config = parsing_config(&app_handle).await;
+    // match config {
+    //     Ok(c)=>{
+            // app_handle.emit("get_config", &c).unwrap();
+    //         println!("get name parameters:{}",name);
+    //     },
+    //     Err(e)=>{
+    //         println!("{}",e);
+    //     }
+    // };
     
 //     let change_result =  change_config(name,&mut config);
 //    let result = match change_result {
@@ -215,12 +237,12 @@ async fn get_config(app_handle: AppHandle,name:String){
 // 修改配置
 #[tauri::command]
 async fn change_config_by_name(app_handle: AppHandle, name:String,proxy:Proxies)->Result<(),String>{
-    let path = get_resource_path(&app_handle)?;
+    // let path = get_resource_path(&app_handle)?;
     let mut config = parsing_config(&app_handle).await.map_err(|e|e.to_string())?;
     match change_proxy(name, &mut config, proxy){
         Ok(())=>{
             let win = app_handle.get_webview_window("config");
-            match write_proxy(&config, path).await{
+            match write_proxy(&app_handle,&mut config).await{
                 Ok(())=>{
                     println!("写入成功");
                     let _ = app_handle.emit("config_updated", {}).map_err(|e|e.to_string());
@@ -255,7 +277,7 @@ async fn change_activation_status(app_handle:AppHandle,name:String)->Result<(),S
     let path = get_resource_path(&app_handle)?;
     let mut config = parsing_config(&app_handle).await.map_err(|e|e.to_string())?;
     let _status = change_proxy_activation_status(name,&mut config)?;
-    write_proxy(&config, path).await.map_err(|e|e.to_string())?;
+    write_proxy(&app_handle,&mut config).await.map_err(|e|e.to_string())?;
     Ok(())
 }
 
@@ -263,14 +285,14 @@ async fn change_activation_status(app_handle:AppHandle,name:String)->Result<(),S
 //删除代理
 #[tauri::command]
 async fn delete_config(app_handle:AppHandle,proxy:Proxies)->Result<(),String>{
-    let path = get_resource_path(&app_handle)?;
+    // let path = get_resource_path(&app_handle)?;
     let mut file_cfg = parsing_config(&app_handle).await.unwrap();
     let result = delete_proxy(proxy.name, &mut file_cfg);
     println!("exec delect function after:{:?}",&file_cfg);
     // let win = app_handle.get_webview_window("config").unwrap();
     match result {
         Ok(_)=>{
-            match write_proxy(&file_cfg,path).await{
+            match write_proxy(&app_handle,&mut file_cfg,).await{
                 Ok(())=>{
                     let msg = MsgType{msg_type:MessageType::Success,title:"通知".to_string(),message:"删除成功".to_string()};
                     // let _ =win.close();

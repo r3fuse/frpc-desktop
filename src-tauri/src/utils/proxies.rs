@@ -22,7 +22,7 @@ pub struct Proxies{
     pub local_port:Option<u16>,
     pub remote_port:Option<u16>
 }
-#[derive(Debug,Serialize, Deserialize)]
+#[derive(Debug,Serialize, Deserialize,Default,Clone)]
 #[serde(rename_all="camelCase")]
 pub struct Config{
     pub server_addr:String,
@@ -37,7 +37,7 @@ pub enum AuthClientMethod{
     Token,Oidc
 }
 
-#[derive(Debug,Serialize, Deserialize)]
+#[derive(Debug,Serialize, Deserialize,Clone)]
 pub struct AuthClientConfig{
     pub method:AuthClientMethod,
     pub token:Option<String>
