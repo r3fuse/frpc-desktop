@@ -3,17 +3,15 @@ use tauri_plugin_shell::ShellExt;
 use tauri::{AppHandle, Emitter};
 use tauri_plugin_shell::process::CommandEvent;
 use tauri::{Manager};
-use std::io::Write;
 use std::sync::Mutex;
 use serde::{Deserialize, Serialize};
-use std::fs;
 mod utils;
 use utils::tools::{has_frpc_process,get_resource_path,generate_config,change_server_config,
     change_proxy,delete_proxy,write_proxy,parsing_config,change_proxy_activation_status,check_name_is_exist,
     AppState};
 use utils::proxies::{Proxies,MsgType};
 use config_store::ConfigStore;
-use anyhow::{Result, anyhow};
+use anyhow::{Result};
 // use sysinfo::{
 //     Components, Disks, Networks, Pid
 // };
@@ -258,7 +256,6 @@ async fn change_config_by_name(app_handle: AppHandle, name:String,proxy:Proxies)
 //修改代理的启用状态
 #[tauri::command]
 async fn change_activation_status(app_handle:AppHandle,name:String)->Result<(),String>{
-    let path = get_resource_path(&app_handle)?;
     let mut config = parsing_config(&app_handle).await.map_err(|e|e.to_string())?;
     let _status = change_proxy_activation_status(name,&mut config)?;
     write_proxy(&app_handle,&mut config).await.map_err(|e|e.to_string())?;
@@ -269,34 +266,33 @@ async fn change_activation_status(app_handle:AppHandle,name:String)->Result<(),S
 //删除代理
 #[tauri::command]
 async fn delete_config(app_handle:AppHandle,proxy:Proxies)->Result<(),String>{
-    // let path = get_resource_path(&app_handle)?;
     let mut file_cfg = parsing_config(&app_handle).await.unwrap();
-    let result = delete_proxy(proxy.name, &mut file_cfg);
+    let result = delete_proxy(&app_handle,proxy.name);
+    app_handle.emit("config_updated", {}).unwrap();
     println!("exec delect function after:{:?}",&file_cfg);
-    // let win = app_handle.get_webview_window("config").unwrap();
-    match result {
-        Ok(_)=>{
-            match write_proxy(&app_handle,&mut file_cfg,).await{
-                Ok(())=>{
-                    let msg = MsgType{msg_type:MessageType::Success,title:"通知".to_string(),message:"删除成功".to_string()};
-                    // let _ =win.close();
-                    send_notification(&app_handle, msg);
-                    app_handle.emit("config_updated", {}).unwrap();
-                },
-                Err(e)=>{
-                    let msg = MsgType{msg_type:MessageType::Error,title:"通知".to_string(),message:e.to_string()};
-                    // let _ = win.close();
-                    send_notification(&app_handle, msg);
-                }
-            } 
+    // match result {
+    //     Ok(_)=>{
+    //         match write_proxy(&app_handle,&mut file_cfg,).await{
+    //             Ok(())=>{
+    //                 let msg = MsgType{msg_type:MessageType::Success,title:"通知".to_string(),message:"删除成功".to_string()};
+    //                 // let _ =win.close();
+    //                 send_notification(&app_handle, msg);
+    //                 app_handle.emit("config_updated", {}).unwrap();
+    //             },
+    //             Err(e)=>{
+    //                 let msg = MsgType{msg_type:MessageType::Error,title:"通知".to_string(),message:e.to_string()};
+    //                 // let _ = win.close();
+    //                 send_notification(&app_handle, msg);
+    //             }
+    //         } 
             
-        },
-        Err(e)=>{
-            let msg = MsgType{msg_type:MessageType::Error,title:"通知".to_string(),message:e};
-            // let _ = win.close();
-            send_notification(&app_handle, msg);
-        }
-    }
+    //     },
+    //     Err(e)=>{
+    //         let msg = MsgType{msg_type:MessageType::Error,title:"通知".to_string(),message:e};
+    //         // let _ = win.close();
+    //         send_notification(&app_handle, msg);
+    //     }
+    // }
     Ok(())
 }
 

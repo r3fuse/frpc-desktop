@@ -46,5 +46,14 @@ impl ConfigStore {
         fs::write(&self.path, content)?;
         Ok(())
     }
+
+    pub fn delect_proxy(&mut self,name:String){
+        if let Some(proxies) = self.data_mut().proxies.as_mut(){
+            if let Some(index) = proxies.iter_mut().position(|p|p.name == name){
+                proxies.remove(index);
+            }
+        }
+    }
+
 }
 

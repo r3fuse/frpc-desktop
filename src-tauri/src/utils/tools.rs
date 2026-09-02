@@ -47,20 +47,12 @@ pub fn generate_server_config(data:Config)->Result<String,String>{
 }
 
 //删除配置
-pub fn delete_proxy( name:String,config:&mut Config )->Result<(),String>{
-    if let Some(proxies) = config.proxies.as_mut(){
-         for (index,item) in proxies.iter().enumerate(){
-            if item.name == name {
-                println!("匹配结果:位于{},内容是：{:?}",index,item);
-                proxies.remove(index);
-                println!("处理后：{:?}",config);
-                return Ok(());
-            }
-        }
-        println!("处理后：{:?}",config.proxies);
-        return Err("修改失败".to_string());
-    }
-    return Err("修改失败".to_string());
+pub fn delete_proxy( app_handle: &AppHandle,name:String)->Result<(),String>{
+   let state = app_handle.state::<AppState>();
+   let mut data = state.config.lock().unwrap();
+   data.delect_proxy(name);
+   let _ = data.save();
+   Ok(())
 }
 
 //修改配置
