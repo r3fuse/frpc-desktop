@@ -67,6 +67,15 @@ impl ConfigStore {
         }
     }
 
+    pub fn change_proxy_activation_status(&mut self,name:String){
+        if let Some(proxies )= self.data_mut().proxies.as_mut(){
+            if let Some(proxy) = proxies.iter_mut().find(|p| p.name == name){
+                let status = proxy.enabled.unwrap_or(true);
+                proxy.enabled = Some(!status);
+            }
+        }
+    }
+
 
 }
 
