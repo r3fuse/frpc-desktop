@@ -27,7 +27,7 @@ const data = JSON.parse(localStorage.getItem("proxy") as string)
 
 async function addConfig(proxy:Proxies){
     try {
-        await invoke("add_proxy",{config:proxy})
+        await invoke("add_proxy",{proxy:proxy})
     } catch (error) {
         console.log(error);
         notification({msg_type:"Error",title:"error",message:(error as string).toString()})

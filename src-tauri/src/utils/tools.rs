@@ -59,14 +59,9 @@ pub fn delete_proxy( app_handle: &AppHandle,name:String)->Result<(),String>{
 pub fn change_proxy( app_handle: &AppHandle,name:String,new_proxy:Proxies )->Result<(),String>{
     let state = app_handle.state::<AppState>();
     let mut data = state.config.lock().unwrap();
-    if let Some(proxies) = data.data_mut().proxies.as_mut(){
-        if let Some(proxy) = proxies.iter_mut().find(|p| p.name ==name){
-            *proxy = new_proxy;
-            data.save();
-            return Ok(()) ; 
-        }
-    }
-    Err("No match".into())
+    data.change_proxy(name, new_proxy);
+    let _ = data.save();
+    Ok(())
 }
 
 //修改启用状态

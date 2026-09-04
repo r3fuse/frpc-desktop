@@ -153,55 +153,18 @@ async fn change_server(app_handle: AppHandle,new_config:Config)->Result<(),Strin
 
 //添加代理
 #[tauri::command]
-async fn add_proxy(app_handle: AppHandle,config:Proxies)->Result<(),String> {
-
-    if config.name.is_empty() {
-        return Err("名称不得为空".to_string());
-    }
-    let mut parsing_result = parsing_config(&app_handle).await.map_err(|e|e.to_string())?;
-    if check_name_is_exist(config.name.clone(),&mut parsing_result).await {
-        return Err("添加失败！！！存在相同名称".to_string());
-    }
+async fn add_proxy(app_handle: AppHandle,proxy:Proxies)->Result<(),String> {
+    
     let state = app_handle.state::<AppState>();
     let mut config_guard = state.config.lock().unwrap();
-    config_guard.data_mut().proxies.get_or_insert_with(Vec::new).push(config);
+    config_guard.add_proxy(proxy);
     let _ = config_guard.save();
     if let Some(win) = app_handle.get_webview_window("config"){
         app_handle.emit("config_updated",{}).unwrap();
         let _ = win.close();
     }
 
-    // let path = get_resource_path(&app_handle)?;
-    // let mut f = fs::File::options().append(true).open(path).expect("读取错误");
-
-    // let cfg: Result<String, String> = generate_config(config);
-    
-    // let cfg = match cfg{
-    //     Ok(v)=>v,
-    //     Err(e)=>{
-    //         println!("配置生成异常，{}",e);
-    //         panic!("配置生成异常")
-    //     },
-    // };
-
-    // match f.write_all(&cfg.as_bytes()){
-    //     Ok(_)=>{
-    //         println!("file write successfully!");
-    //         let title = String::from("配置发生变动");
-    //         let msg = String::from("新增成功");
-    //         let m = MsgType{msg_type:MessageType::Success,title:title,message:msg};
-    //         send_notification(&app_handle, m);
-    //         // println!("{:?}", app_handle.webview_windows());
-    //         app_handle.emit("config_updated",{}).unwrap();
-    //         if let Some(win) = app_handle.get_webview_window("config"){
-    //             let _ = win.close();
-    //         };
-    //     },
-    //     Err(e)=>println!("error:{}",e)
-    // };
-
     Ok(())
-    // parsing_config();
 }
 
 

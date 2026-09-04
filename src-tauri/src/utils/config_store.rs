@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use std::fs;
 use anyhow::{Result};
-use crate::utils::proxies::Config;
+use crate::utils::proxies::{Config, Proxies};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug,Serialize, Deserialize)]
@@ -47,6 +47,10 @@ impl ConfigStore {
         Ok(())
     }
 
+    pub fn add_proxy(&mut self,proxy:Proxies){
+        self.data_mut().proxies.get_or_insert(Vec::new()).push(proxy);
+    }
+
     pub fn delect_proxy(&mut self,name:String){
         if let Some(proxies) = self.data_mut().proxies.as_mut(){
             if let Some(index) = proxies.iter_mut().position(|p|p.name == name){
@@ -54,6 +58,15 @@ impl ConfigStore {
             }
         }
     }
+
+    pub fn change_proxy(&mut self,name:String,new_proxy:Proxies){
+        if let Some(proxies) = self.data_mut().proxies.as_mut(){
+            if let Some(proxy) = proxies.iter_mut().find(|p|p.name == name){
+                *proxy = new_proxy;
+            }
+        }
+    }
+
 
 }
 
