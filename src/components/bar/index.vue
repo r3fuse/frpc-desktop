@@ -4,23 +4,25 @@
 
 <template>
     <div class="bar">
-        <ul>
-            <li>
-                <RouterLink to="/">
-                            首页
-                </RouterLink>
-            </li>
-            <li>
-                <RouterLink to="server">
-                    配置
-                </RouterLink>
-            </li>
-            <li>
-                <RouterLink to="about">
-                    关于
-                </RouterLink>
-            </li>
-        </ul>
+        <div class="mian">
+            <ul>
+                <li>
+                    <RouterLink to="/">
+                                首页
+                    </RouterLink>
+                </li>
+                <li>
+                    <RouterLink to="server">
+                        配置
+                    </RouterLink>
+                </li>
+                <li>
+                    <RouterLink to="about">
+                        关于
+                    </RouterLink>
+                </li>
+            </ul>
+        </div>
     </div>
 </template>
 
@@ -39,6 +41,7 @@ a{
     font-size: medium;
     box-sizing: border-box;
     position: sticky;
+    width: 100%;
 }
 .bar ul{
     margin: 0;

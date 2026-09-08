@@ -8,8 +8,8 @@ export interface Proxies{
 }
 
 export interface Config{
-    serverAddr:string,
-    serverPort:number,
+    serverAddr?:string,
+    serverPort?:number,
     proxies?:Proxies[],
     auth?:AuthClientConfig
 }

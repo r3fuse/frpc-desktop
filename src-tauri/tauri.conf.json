@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "frp-gui",
+  "productName": "frpc-desktop",
   "version": "0.1.0",
-  "identifier": "com.rec.frp-gui",
+  "identifier": "com.rec.frpc-desktop",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -12,8 +12,8 @@
   "app": {
     "windows": [
       {
-        "width": 800,
-        "height": 600,
+        "width": 900,
+        "height": 700,
         "decorations":false,
         "transparent":true
       }

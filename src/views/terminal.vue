@@ -73,6 +73,7 @@ a{
     font-weight: bold;
     font-family: consolas;
     padding: 0.5rem;
+    letter-spacing: 0.6px;
     /* border-radius: 10px; */
     /* border: 2px solid rgb(123, 158, 240); */
 }

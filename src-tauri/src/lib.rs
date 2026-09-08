@@ -3,6 +3,7 @@ use tauri_plugin_shell::ShellExt;
 use tauri::{AppHandle, Emitter};
 use tauri_plugin_shell::process::CommandEvent;
 use tauri::{Manager};
+use std::path::PathBuf;
 use std::sync::Mutex;
 use serde::{Deserialize, Serialize};
 mod utils;
@@ -11,7 +12,6 @@ use utils::tools::{has_frpc_process,get_resource_path,generate_config,change_ser
     AppState};
 use utils::proxies::{Proxies,MsgType};
 use config_store::ConfigStore;
-use anyhow::{Result};
 // use sysinfo::{
 //     Components, Disks, Networks, Pid
 // };
@@ -63,25 +63,20 @@ fn start_frp(app_handle: AppHandle) {
         send_notification(&app_handle, msg);
         return;
     }
-    // let resource_path = app_handle.path().resolve("resources/frpc.toml", BaseDirectory::Resource).expect("Failed to resolve resource path");
-    // let resource_path = get_resource_path(&app_handle);
-    // println!("Resolved resource path: {:?}", resource_path);
-
-    let path = match get_resource_path(&app_handle){
-        Ok(path)=>path,
-        Err(e)=>{
-            eprintln!("{:?}",e);
-            return;
-        }
-    };
-
-    let sider_command = app_handle.shell().sidecar("frpc").expect("REASON").args(&["-c",&path]);
-    let (mut rx, child) = sider_command.spawn().expect("Failed to spawn frpc process");
     
     let state = app_handle.state::<AppState>();
+    let data = state.config.lock().unwrap();
+    let path = data.path().to_str().expect("fetch path failed");
+    let sider_command = app_handle.shell().sidecar("frpc").expect("REASON").args(&["-c",&path]);
+    drop(data);
+
+    let (mut rx, child) = sider_command.spawn().expect("Failed to spawn frpc process");
+    
+    // let state = app_handle.state::<AppState>();
     let mut frpc_process_lock = state.frpc_process.lock().unwrap();
     *frpc_process_lock = Some(child);
     drop(frpc_process_lock);
+
 
     tauri::async_runtime::spawn(async move{
         while let Some(event) = rx.recv().await{
@@ -129,25 +124,10 @@ fn stop_frp(app_handle: tauri::AppHandle) {
 //修改服务器配置
 #[tauri::command]
 async fn change_server(app_handle: AppHandle,new_config:Config)->Result<(),String>{
-    // let path = get_resource_path(&app_handle)?;
-    let mut config = parsing_config(&app_handle).await.map_err(|e|e.to_string())?;
-    change_server_config(&app_handle,&mut config,new_config).await?;
-    match write_proxy(&app_handle,&mut config).await {
-        Ok(_) => {
-            let title = String::from("服务器配置发生变动");
-            let msg = String::from("修改成功");
-            let m = MsgType{msg_type:MessageType::Success,title:title,message:msg};
-            send_notification(&app_handle, m);
-        }
-        Err(e) => {
-            println!("file write failed: {}", e);
-            let title: String = String::from("服务器配置发生变动");
-            let msg = String::from("修改失败");
-            let m = MsgType{msg_type:MessageType::Success,title:title,message:msg};
-            send_notification(&app_handle, m);
-            return Err("写入失败".to_string());
-        }
-    }
+    let state = app_handle.state::<AppState>();
+    let mut config_guard = state.config.lock().unwrap();
+    config_guard.change_server_config(new_config.server_addr, new_config.server_port, new_config.auth);
+    config_guard.save();
     Ok(())
 }
 
@@ -170,29 +150,12 @@ async fn add_proxy(app_handle: AppHandle,proxy:Proxies)->Result<(),String> {
 
 //获取解析配置文件
 #[tauri::command]
-async fn get_config(app_handle: AppHandle,name:String){
+fn get_config(app_handle: AppHandle)->Result<Config,String>{
     let state = app_handle.state::<AppState>();
     let config_guard = state.config.lock().unwrap();
-    let config = config_guard.data();
+    let config = config_guard.data().clone();
     app_handle.emit("get_config", &config).unwrap();
-    
-    // let config = parsing_config(&app_handle).await;
-    // match config {
-    //     Ok(c)=>{
-            // app_handle.emit("get_config", &c).unwrap();
-    //         println!("get name parameters:{}",name);
-    //     },
-    //     Err(e)=>{
-    //         println!("{}",e);
-    //     }
-    // };
-    
-//     let change_result =  change_config(name,&mut config);
-//    let result = match change_result {
-//        Ok(_)=>{send_notification(&app_handle, "success".to_string(), "修改通知".to_string(), "配置修改成功".to_string())},
-//        Err(_)=>{send_notification(&app_handle, "success".to_string(), "修改通知".to_string(), "配置修改成功".to_string())},
-//    };
-
+    Ok(config)
 }
 
 // 修改配置
@@ -219,9 +182,10 @@ async fn change_config_by_name(app_handle: AppHandle, name:String,proxy:Proxies)
 //修改代理的启用状态
 #[tauri::command]
 async fn change_activation_status(app_handle:AppHandle,name:String)->Result<(),String>{
-    let mut config = parsing_config(&app_handle).await.map_err(|e|e.to_string())?;
-    let _status = change_proxy_activation_status(name,&mut config)?;
-    write_proxy(&app_handle,&mut config).await.map_err(|e|e.to_string())?;
+    let state = app_handle.state::<AppState>();
+    let mut config_guard = state.config.lock().unwrap();
+    let data = config_guard.change_proxy_activation_status(name);
+    config_guard.save();
     Ok(())
 }
 
@@ -233,29 +197,6 @@ async fn delete_config(app_handle:AppHandle,proxy:Proxies)->Result<(),String>{
     let result = delete_proxy(&app_handle,proxy.name);
     app_handle.emit("config_updated", {}).unwrap();
     println!("exec delect function after:{:?}",&file_cfg);
-    // match result {
-    //     Ok(_)=>{
-    //         match write_proxy(&app_handle,&mut file_cfg,).await{
-    //             Ok(())=>{
-    //                 let msg = MsgType{msg_type:MessageType::Success,title:"通知".to_string(),message:"删除成功".to_string()};
-    //                 // let _ =win.close();
-    //                 send_notification(&app_handle, msg);
-    //                 app_handle.emit("config_updated", {}).unwrap();
-    //             },
-    //             Err(e)=>{
-    //                 let msg = MsgType{msg_type:MessageType::Error,title:"通知".to_string(),message:e.to_string()};
-    //                 // let _ = win.close();
-    //                 send_notification(&app_handle, msg);
-    //             }
-    //         } 
-            
-    //     },
-    //     Err(e)=>{
-    //         let msg = MsgType{msg_type:MessageType::Error,title:"通知".to_string(),message:e};
-    //         // let _ = win.close();
-    //         send_notification(&app_handle, msg);
-    //     }
-    // }
     Ok(())
 }
 
@@ -286,13 +227,6 @@ async fn create_window(app: tauri::AppHandle,operation:FRPConfigOperation,proxy:
 
 #[tauri::command]
 fn get_momery_usage(){
-        // if let Some(usage) = memory_stats(){
-        //     println!("physical memory:{}",usage.virtual_mem);
-        //     (usage.virtual_mem,usage.physical_mem)
-        // }else {
-        //     println!("Can't get memory usage");
-        //     (0,0)
-        // }
         let mut system = sysinfo::System::new_all();
         system.refresh_all();
        match sysinfo::get_current_pid() {
@@ -303,4 +237,13 @@ fn get_momery_usage(){
                 println!("failed to get current pid: {}", e);
             }
         }
+}
+
+//获取配置文件路径
+#[tauri::command]
+fn get_config_path(app_handle: &AppHandle)->Result<PathBuf,String>{
+    let state = app_handle.state::<AppState>();
+    let data_guard = state.config.lock().unwrap();
+    let path = data_guard.path().clone();
+    Ok(path)
 }

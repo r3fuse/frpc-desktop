@@ -27,8 +27,8 @@ pub struct Proxies{
 pub struct Config{
     pub server_addr:String,
     pub server_port:u16,
+    pub auth:Option<AuthClientConfig>,
     pub proxies:Option<Vec<Proxies>>,
-    pub auth:Option<AuthClientConfig>
 }
 
 #[derive(Debug,Serialize, Deserialize,Clone,Copy)]
@@ -39,8 +39,13 @@ pub enum AuthClientMethod{
 
 #[derive(Debug,Serialize, Deserialize,Clone)]
 pub struct AuthClientConfig{
+    #[serde(default="default_auth_method")]
     pub method:AuthClientMethod,
     pub token:Option<String>
+}
+
+fn default_auth_method()->AuthClientMethod{
+    AuthClientMethod::Token
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use std::fs;
 use anyhow::{Result};
-use crate::utils::proxies::{Config, Proxies};
+use crate::utils::proxies::{AuthClientConfig, Config, Proxies};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug,Serialize, Deserialize)]
@@ -41,6 +41,10 @@ impl ConfigStore {
         &mut self.data
     }
 
+    pub fn path(&self) -> &PathBuf{
+        &self.path
+    }
+
     pub fn save(&self) ->Result<()> {
         let content = toml::to_string_pretty(&self.data)?;
         fs::write(&self.path, content)?;
@@ -76,6 +80,15 @@ impl ConfigStore {
         }
     }
 
-
+    pub fn change_server_config(&mut self,server_add:String,server_port:u16,auth:Option<AuthClientConfig>){
+        self.data_mut().server_addr = server_add;
+        self.data_mut().server_port = server_port;
+        if auth.is_some(){
+            self.data_mut().auth = auth;
+        }else{
+            self.data_mut().auth = None;
+        }
+    }
+    
 }
 

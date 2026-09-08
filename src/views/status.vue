@@ -156,6 +156,7 @@ onMounted(() => {
     padding: 0 0.4rem;
     display: flex;
     flex-direction: column;
+    background-color: rgb(59, 64, 84);
 }
 .ip {
     position: absolute;
@@ -272,15 +273,16 @@ onMounted(() => {
     flex: 3;
 }
 .localPort {
-    flex: 3;
+    flex: 2;
 }
 .remote {
-    flex: 3;
+    flex: 2;
 }
 .configTitle .status {
     flex: 2;
     border-right: none;
     cursor: pointer;
+    text-align: center;
 }
 .title {
     padding-right: 3rem;
