@@ -2,11 +2,14 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { ref, onMounted, watch } from "vue";
+import { useConfigStore } from "../store/configStore";
 enum FRPConfigOperation {
     Create = "Create",
     Edit = "Edit",
     Delete = "Delete",
 }
+
+const configStore = useConfigStore();
 
 listen("get_config", (data) => {
     console.log("获取的数据是：", data.payload);
@@ -67,13 +70,11 @@ watch(selectedItem, (newValue, oldValue) => {
 
 onMounted(() => {
     readConfig();
-    const lists = document.querySelector("#data");
-    console.log(lists);
 });
 </script>
 
 <template>
-    <div class="config">
+    <div class="status">
         <div class="ip" @click="isShowIp = !isShowIp">
             <span style="color: #ca9ee5; font-size: small; font-weight: bold"
                 >服务器地址：</span
@@ -117,7 +118,7 @@ onMounted(() => {
             <span class="localAddr">本地地址</span>
             <span class="localPort">本地端口</span>
             <span class="remote">远程端口</span>
-            <span class="status">启用状态</span>
+            <span class="proxyStatus">启用状态</span>
         </div>
         <div class="cfg">
             <div
@@ -135,7 +136,7 @@ onMounted(() => {
                 <span class="remote">{{ item.remotePort }}</span>
                 <!-- <span class="status" @click="item.enable=!item.enable">{{ item.enable==false?"X":"√" }}</span> -->
                 <span
-                    class="status"
+                    class="proxyStatus"
                     @click="change_activation_status(item.name)"
                     >{{ item.enabled == false ? "X" : "√" }}</span
                 >
@@ -145,9 +146,10 @@ onMounted(() => {
     </div>
 </template>
 
-<style scoped>
-.config {
-    width: 100%;
+<style lang="scss" scoped>
+@use "../assets/css/main.scss" as *;
+// $purple: #ca9ee5;
+.status {
     height: 100%;
     user-select: none;
     border: 2px solid #ccc;
@@ -157,6 +159,7 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     background-color: rgb(59, 64, 84);
+    margin: 0 0.6rem;
 }
 .ip {
     position: absolute;
@@ -200,9 +203,16 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
+    .configTitle {
+        cursor: pointer;
+        user-select: none;
+    }
 }
 .empty {
     flex: 1;
+    p {
+        color: $purple;
+    }
 }
 #title {
     font-weight: bold;
@@ -278,7 +288,7 @@ onMounted(() => {
 .remote {
     flex: 2;
 }
-.configTitle .status {
+.configTitle .proxyStatus {
     flex: 2;
     border-right: none;
     cursor: pointer;

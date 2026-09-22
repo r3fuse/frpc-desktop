@@ -1,22 +1,41 @@
 <script setup lang="ts">
-import { invoke } from "@tauri-apps/api/core";
 import { onMounted } from "vue";
 import { useConfigStore } from "./store/configStore";
-import { Config } from "./utils/type";
+import { useStatusStore } from "./store/statusStore";
+import { getConfig } from "./hooks/useTauri";
+import { frpLogsListener } from "./hooks/useTauri";
+import { WorkStatus } from "./utils/statue";
 
 const configStore = useConfigStore();
-
+const statusStore = useStatusStore();
 if (import.meta.env.PROD) {
     window.addEventListener("contextmenu", (e) => e.preventDefault(), true);
 }
 
-async function init_configstroe() {
-    const data = (await invoke("get_config")) as Config;
+/**初始化configStore仓库 */
+async function init_configstroe(): Promise<void> {
+    const data = await getConfig();
     configStore.set_config(data);
+}
+
+function stripAnsi(str: string) {
+    return str.replace(/\x1B\[[0-9;]*[mK]/g, "");
 }
 
 onMounted(async () => {
     await init_configstroe();
+    frpLogsListener((event) => {
+        console.log("原始负载" + event.payload);
+        let tempStr = stripAnsi(event.payload as string);
+        console.log("tempStr" + tempStr);
+        if (tempStr.includes("[W]")) {
+            statusStore.changeFRPStatus(WorkStatus.warn);
+        }
+        if (tempStr.includes("[E]") || tempStr.includes("server failed")) {
+            statusStore.changeFRPStatus(WorkStatus.error);
+        }
+        statusStore.addLogs(tempStr);
+    });
 });
 </script>
 
@@ -33,7 +52,6 @@ onMounted(async () => {
 .app {
     height: 100vh;
     display: flex;
-    flex-direction: column;
     overflow: hidden;
 }
 .view {

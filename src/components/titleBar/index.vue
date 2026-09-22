@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { Window } from '@tauri-apps/api/window';
-import { onMounted } from 'vue';
-import { getCurrentWindow } from '@tauri-apps/api/window';
-import { invoke } from '@tauri-apps/api/core';
+import { Window } from "@tauri-apps/api/window";
+import { onMounted } from "vue";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { invoke } from "@tauri-apps/api/core";
 
 // const windowName = getCurrentWindow();
 // const appWindow = new Window(windowName.label);
@@ -39,9 +39,7 @@ onMounted(() => {
 
 <template>
     <div data-tauri-drag-region class="titleBar">
-        <div class="title">
-            frpc-desktop
-        </div>
+        <div class="title">frpc-desktop</div>
         <div class="controllWindow">
             <div class="titlebar-button resize" id="titlebar-minimize">
                 <svg
@@ -80,10 +78,11 @@ onMounted(() => {
     </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 .titleBar {
     position: sticky;
     width: 100%;
+    height: 2.4rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -94,7 +93,7 @@ onMounted(() => {
     user-select: none;
     -webkit-user-select: none;
 }
-.title{
+.title {
     padding-left: 1rem;
     font-weight: bold;
 }
@@ -108,7 +107,7 @@ onMounted(() => {
     justify-content: center;
     cursor: pointer;
 }
-.controllWindow{
+.controllWindow {
     display: flex;
 }
 .resize:hover {

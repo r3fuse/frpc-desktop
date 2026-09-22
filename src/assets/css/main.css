@@ -1,10 +1,12 @@
-:root{
-    --purple:#ca9ee5;
-    --lightBlue:#3b4054;
-    --darkBlue:#303446;
+:root {
+    --purple: #ca9ee5;
+    --lightBlue: #3b4054;
+    --darkBlue: #303446;
 }
 
-html,body,#app{
-    border-radius: 6px 6px 0 0 ;
+html,
+body,
+#app {
+    border-radius: 6px 6px 0 0;
     overflow: hidden;
 }

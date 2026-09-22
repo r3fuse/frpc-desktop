@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 use std::fs;
 use anyhow::{Result};
+use tauri::{AppHandle, Emitter};
 use crate::utils::proxies::{AuthClientConfig, Config, Proxies};
 use serde::{Deserialize, Serialize};
 
