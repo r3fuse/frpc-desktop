@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import Bar from "../components/bar/index.vue";
-import TitleBar from "../components/titleBar/index.vue";
-import { InputTypeHTMLAttribute, onMounted, ref, watch } from "vue";
+import { InputTypeHTMLAttribute, onMounted, ref } from "vue";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { invoke } from "@tauri-apps/api/core";
 import { type Config } from "../utils/type.ts";
@@ -12,7 +10,7 @@ async function getConfig(): Promise<Config> {
 
 const config = ref<Config>({
     serverAddr: "",
-    serverPort: 0,
+    serverPort: 7000,
     auth: {
         method: "token",
         token: "",
@@ -24,7 +22,8 @@ const tokenInputType = ref<InputTypeHTMLAttribute>("password");
 onMounted(async () => {
     const windowName = await getCurrentWindow();
     config.value = await getConfig();
-    console.log(config);
+    config.value.auth ??= { method: "token", token: "" };
+    console.log(config.value);
     console.log("appName", windowName.label);
 });
 
@@ -37,12 +36,6 @@ function save_server() {
         },
     });
 }
-
-watch(config.value, (newVal) => {
-    if (newVal?.auth?.token == "") {
-        config.value!.auth!.token = null;
-    }
-});
 </script>
 
 <template>
@@ -61,15 +54,14 @@ watch(config.value, (newVal) => {
                             type="number"
                             id="port"
                             max="65536"
-                            min="0"
+                            min="1"
                             v-model="config.serverPort"
                         />
                     </div>
                     <div class="method item">
                         <label for="method">验证方式：</label>
-                        <!-- <input type="text" id="method" v-model="config.auth!.method" /> -->
                         <select>
-                            <option value="method">method</option>
+                            <option value="method">token</option>
                             <option value="oidc">oidc</option>
                         </select>
                     </div>
@@ -80,6 +72,7 @@ watch(config.value, (newVal) => {
                         :type="tokenInputType"
                         id="token"
                         v-model="config.auth!.token"
+                        placeholder="若无则留空"
                     />
                     <span
                         @click="
@@ -130,6 +123,9 @@ watch(config.value, (newVal) => {
 </template>
 
 <style scoped>
+input {
+    font-size: 16px;
+}
 .server {
     padding: 0 1rem;
     margin-top: 2rem;
@@ -164,11 +160,11 @@ watch(config.value, (newVal) => {
 }
 .config {
     color: var(--purple);
-    padding-left: 3rem;
     margin-top: 1rem;
     display: flex;
     flex-direction: column;
     align-items: center;
+    font-size: 16px;
 }
 .config .item {
     margin: 0.4rem;
