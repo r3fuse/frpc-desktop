@@ -1,7 +1,15 @@
-# Tauri + Vue + TypeScript
+# FRPC桌面版
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+FRP跨平台桌面客户端，可视化配置
 
-## Recommended IDE Setup
+<img width="420" height="470" alt="image" src="https://github.com/user-attachments/assets/dfbe4293-15de-415f-b2d8-2fbcffc1214d" />
 
-- [VS Code](https://code.visualstudio.com/) + [Vue - Official](https://marketplace.visualstudio.com/items?itemName=Vue.volar) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+
+## 界面 
+<img width="902" height="699" alt="image" src="https://github.com/user-attachments/assets/7995b690-4b6e-4466-ae1d-2d61414c2892" />
+<img width="1044" height="774" alt="image" src="https://github.com/user-attachments/assets/4708d923-0d8c-4d9b-8334-5794fab09150" />
+
+<img width="1138" height="910" alt="image" src="https://github.com/user-attachments/assets/56fe1c81-2bdd-4412-92d0-28c6fa046126" />
+
+
+
