@@ -7,8 +7,7 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 use serde::{Deserialize, Serialize};
 mod utils;
-use utils::tools::{has_frpc_process,get_resource_path,generate_config,change_server_config,
-    change_proxy,delete_proxy,write_proxy,parsing_config,change_proxy_activation_status,check_name_is_exist,
+use utils::tools::{has_frpc_process,change_proxy,delete_proxy,check_name_is_exist,
     AppState};
 use utils::proxies::{Proxies,MsgType};
 use config_store::ConfigStore;
@@ -38,7 +37,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![start_frp,stop_frp,add_proxy,
                         delete_config,change_config_by_name,get_config,create_window,change_server,
-                        get_momery_usage,change_activation_status])
+                        get_momery_usage,change_activation_status,refresh_config])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -126,7 +125,9 @@ fn stop_frp(app_handle: tauri::AppHandle) {
 async fn change_server(app_handle: AppHandle,new_config:Config)->Result<(),String>{
     let state = app_handle.state::<AppState>();
     let mut config_guard = state.config.lock().unwrap();
-    config_guard.change_server_config(new_config.server_addr, new_config.server_port, new_config.auth);
+    println!("{:?}",new_config.clone());
+    config_guard.change_server_config(new_config.server_addr, new_config.server_port, new_config.auth,new_config.transport);
+    println!("{:?}",config_guard.data());
     config_guard.save();
     Ok(())
 }
@@ -134,15 +135,18 @@ async fn change_server(app_handle: AppHandle,new_config:Config)->Result<(),Strin
 //添加代理
 #[tauri::command]
 async fn add_proxy(app_handle: AppHandle,proxy:Proxies)->Result<(),String> {
-    
+    println!("proxy:{:?}",proxy);
     let state = app_handle.state::<AppState>();
     let mut config_guard = state.config.lock().unwrap();
+    if check_name_is_exist(proxy.name.clone(),config_guard.data()){
+        return Err("名称已存在，请修改配置名称".to_string());
+    }
     config_guard.add_proxy(proxy);
     let _ = config_guard.save();
-    if let Some(win) = app_handle.get_webview_window("config"){
-        app_handle.emit("config_updated",{}).unwrap();
-        let _ = win.close();
-    }
+    // if let Some(win) = app_handle.get_webview_window("config"){
+    //     app_handle.emit("config_updated",{}).unwrap();
+    //     let _ = win.close();
+    // }
 
     Ok(())
 }
@@ -158,11 +162,21 @@ fn get_config(app_handle: AppHandle)->Result<Config,String>{
     Ok(config)
 }
 
+//刷新配置文件
+#[tauri::command]
+fn refresh_config(app_handle: AppHandle)->Result<Config,String>{
+    let state = app_handle.state::<AppState>();
+    let config_guard = state.config.lock().unwrap();
+    let cfg = config_guard.refresh_data();
+    match cfg {
+        Ok(d)=>Ok(d),
+        Err(e)=>Err(e.to_string())
+    }
+}
+
 // 修改配置
 #[tauri::command]
 async fn change_config_by_name(app_handle: AppHandle, name:String,proxy:Proxies)->Result<(),String>{
-    // let path = get_resource_path(&app_handle)?;
-    // let mut config = parsing_config(&app_handle).await.map_err(|e|e.to_string())?;
     match change_proxy(&app_handle,name, proxy){
         Ok(())=>{
             let win = app_handle.get_webview_window("config");
@@ -192,11 +206,10 @@ async fn change_activation_status(app_handle:AppHandle,name:String)->Result<(),S
 
 //删除代理
 #[tauri::command]
-async fn delete_config(app_handle:AppHandle,proxy:Proxies)->Result<(),String>{
-    let mut file_cfg = parsing_config(&app_handle).await.unwrap();
-    let result = delete_proxy(&app_handle,proxy.name);
+async fn delete_config(app_handle:AppHandle,proxy_name:String)->Result<(),String>{
+    println!("删除代理{:?}",proxy_name);
+    let result = delete_proxy(&app_handle,proxy_name);
     app_handle.emit("config_updated", {}).unwrap();
-    println!("exec delect function after:{:?}",&file_cfg);
     Ok(())
 }
 

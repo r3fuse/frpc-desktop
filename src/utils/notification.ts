@@ -1,38 +1,54 @@
-import { createVNode,render } from "vue";
-import Notification from "../components/notification/index.vue"
+import { createVNode, render } from "vue";
+import Notification from "../components/notification/index.vue";
 
-type MessageType = "Success" | "Warning" | "Error"
+type MessageType = "Success" | "Warning" | "Error";
 
 interface MsgType {
-    msg_type:MessageType,
-    title:string,
-    message:string
+    msg_type: MessageType;
+    title: string;
+    message: string;
+    lazyClose?: number;
 }
 
-export function notification(options:MsgType){
-    return new Promise((resolve)=>{
-        const container = document.createElement("div");
+interface notificationInstance {
+    result: Promise<boolean>;
+    destroy: () => void;
+}
+
+export function notification(options: MsgType): notificationInstance {
+    const container = document.createElement("div");
+    const myDialog = document.querySelector(".myDialog");
+    if (myDialog) {
+        myDialog.appendChild(container);
+    } else {
         document.body.appendChild(container);
-        const vnode = createVNode(Notification,{
-            ...options,
-            onConfirm(){
-                resolve(true);
-                destroy()
-            },
-            onCancel(){
-                resolve(false);
-                destroy();
-            }
-        })
+    }
+    let resolveResult!: (value: boolean) => void;
+    let destroyed = false;
 
-        render(vnode,container);
+    const result = new Promise<boolean>((resolve) => {
+        resolveResult = resolve;
+    });
+    const vnode = createVNode(Notification, {
+        ...options,
+        onConfirm() {
+            resolveResult(true);
+            destroy();
+        },
+        onCancel() {
+            resolveResult(false);
+            destroy();
+        },
+    });
 
-        function destroy(){
-            render(null,container);
-            container.remove();
-        }
-        
-    })
+    render(vnode, container);
 
-    
+    function destroy() {
+        if (destroyed) return;
+        destroyed = true;
+        render(null, container);
+        container.remove();
+    }
+
+    return { result, destroy };
 }

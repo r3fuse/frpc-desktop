@@ -1056,7 +1056,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "frp-gui"
+name = "frpc-desktop"
 version = "0.1.0"
 dependencies = [
  "anyhow",

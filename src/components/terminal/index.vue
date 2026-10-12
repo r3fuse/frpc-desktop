@@ -1,16 +1,12 @@
 <script setup lang="ts">
-import { onMounted, ref, useTemplateRef } from "vue";
-import { useStatusStore } from "../store/statusStore";
+import { nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
+import { useStatusStore } from "../../store/statusStore";
 // defineOptions({
 //     name: "alive",
 // });
 const statusStore = useStatusStore();
 const terminal = ref<HTMLElement>();
 const rightMenuShow = ref<boolean>(false);
-
-function stripAnsi(str: string) {
-    return str.replace(/\x1B\[[0-9;]*[mK]/g, "");
-}
 
 function goTop() {
     const logElement = document.querySelector(".log");
@@ -19,8 +15,9 @@ function goTop() {
     }
 }
 const buttom = useTemplateRef("bottom");
-function goBottom() {
-    buttom.value?.scrollIntoView({ block: "end", behavior: "smooth" });
+async function goBottom() {
+    await nextTick();
+    buttom.value!.scrollIntoView({ block: "end", behavior: "smooth" });
 }
 
 function InfoType(data: string) {
@@ -36,8 +33,8 @@ onMounted(() => {
     terminal.value!.addEventListener("contextmenu", (e: MouseEvent) => {
         e.preventDefault();
         const rect = terminal.value!.getBoundingClientRect();
-        let mouseX = Math.min(e.clientX, rect.width - menuWidth);
-        let mouseY = Math.min(e.clientY, rect.height - menuHeight);
+        let mouseX = Math.min(e.clientX - rect.left, rect.width - menuWidth);
+        let mouseY = Math.min(e.clientY - rect.top, rect.height - menuHeight);
         console.log(rect.width, mouseX);
         if (mouseX >= rect.width) {
             rightMenuDiv!.style.top = `${mouseY}px`;
@@ -48,6 +45,12 @@ onMounted(() => {
         }
         rightMenuShow.value = !rightMenuShow.value;
     });
+});
+
+watch(statusStore.logs, () => {
+    if (statusStore.keepBottom) {
+        goBottom();
+    }
 });
 </script>
 
@@ -62,7 +65,13 @@ onMounted(() => {
         </div>
         <div class="title">
             <span @click="goTop">执行日志📚</span>
-            <span @click="goBottom">底部</span>
+            <div class="toBottom">
+                <span class="autoBottom">
+                    <input type="checkbox" v-model="statusStore.keepBottom" />
+                    <span>自动滚动至底部</span>
+                </span>
+                <span @click="goBottom">底部</span>
+            </div>
         </div>
         <div class="log">
             <ul>
@@ -73,7 +82,7 @@ onMounted(() => {
                 >
                     <p>{{ line }}</p>
                 </li>
-                <span ref="bottom"></span>
+                <p class="bottomBox" ref="bottom">&nbsp;</p>
             </ul>
             <!-- <p id="bottom"></p> -->
         </div>
@@ -81,7 +90,7 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-@use "../assets/css/main.scss" as *;
+@use "../../assets/css/main.scss" as *;
 a {
     color: white;
     text-decoration: none;
@@ -90,16 +99,18 @@ a {
 .terminal {
     height: 100%;
     max-height: 100%;
-    background-color: rgb(48, 52, 70);
-    padding: 0.8rem;
+    background-color: #2c2c2c;
     box-sizing: border-box;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     position: relative;
+    border-radius: 6px;
+    border: 1px solid #ebebeb;
+    padding: 0.6rem;
 
     .rightMenu {
-        position: fixed;
+        position: absolute;
         background-color: white;
         font-weight: 400;
         letter-spacing: 1px;
@@ -132,6 +143,19 @@ a {
         display: flex;
         align-items: center;
         justify-content: space-between;
+        -webkit-user-select: none;
+        user-select: none;
+
+        .toBottom {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            .autoBottom {
+                margin-right: 2rem;
+                display: flex;
+                align-items: center;
+            }
+        }
     }
     .log {
         // max-height: 80%;
@@ -141,7 +165,7 @@ a {
         overflow-y: scroll;
         scrollbar-width: thin;
         scrollbar-color: rgb(176, 192, 231) transparent;
-        background-color: rgb(48, 52, 70);
+        // background-color: rgb(48, 52, 70);
         color: rgb(123, 158, 240);
         font-weight: bold;
         font-family: consolas;
@@ -161,6 +185,12 @@ a {
                 }
             }
 
+            .bottomBox {
+                font-size: smaller;
+                line-height: 1px;
+                margin: 0;
+            }
+
             .info {
                 color: $success;
             }
@@ -176,7 +206,7 @@ a {
         font-size: small;
         font-weight: bold;
         color: rgb(123, 158, 240);
-        background-color: rgb(48, 52, 70);
+        // background-color: rgb(48, 52, 70);
     }
 }
 </style>

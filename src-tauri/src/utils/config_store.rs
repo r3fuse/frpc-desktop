@@ -1,8 +1,7 @@
 use std::path::PathBuf;
 use std::fs;
-use anyhow::{Result};
-use tauri::{AppHandle, Emitter};
-use crate::utils::proxies::{AuthClientConfig, Config, Proxies};
+use anyhow::{Error, Result};
+use crate::utils::proxies::{AuthClientConfig, Config, Proxies,ClientTransportConfig};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug,Serialize, Deserialize)]
@@ -13,7 +12,7 @@ pub struct ConfigStore{
 
 impl ConfigStore {
     pub fn new() -> Result<Self>{
-        let dir = directories::ProjectDirs::from("com", "frp", "frpGui")
+        let dir = directories::ProjectDirs::from("com", "frp", "frpc-desktop")
             .ok_or_else(||anyhow::anyhow!("Failed to get project dirs"))?;
         let config_dir = dir.config_dir();
         fs::create_dir_all(config_dir)?;
@@ -32,6 +31,22 @@ impl ConfigStore {
             Config::default()
         };
         Ok(Self { path, data })
+    }
+
+    pub fn refresh_data(&self)->Result<Config,Error>{
+        let data = if self.path.exists() {
+            let content = fs::read_to_string(&self.path)?;
+            match toml::from_str(&content) {
+                Ok(d)=>d,
+                Err(e)=>{
+                    println!("config file corrupted {}:{}",&self.path.display(),e);
+                    Config::default()
+                }
+            }
+        } else {
+            Config::default()
+        };
+        Ok(data)
     }
 
     pub fn data(&self) -> &Config{
@@ -81,7 +96,7 @@ impl ConfigStore {
         }
     }
 
-    pub fn change_server_config(&mut self,server_add:String,server_port:u16,auth:Option<AuthClientConfig>){
+    pub fn change_server_config(&mut self,server_add:String,server_port:u16,auth:Option<AuthClientConfig>,transport:Option<ClientTransportConfig>){
         self.data_mut().server_addr = server_add;
         self.data_mut().server_port = server_port;
         if auth.is_some(){
@@ -89,6 +104,12 @@ impl ConfigStore {
         }else{
             self.data_mut().auth = None;
         }
+        if transport.is_some(){
+            self.data_mut().transport = transport;
+        }else{
+            self.data_mut().transport = None;
+        }
+        
     }
     
 }

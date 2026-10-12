@@ -119,19 +119,12 @@ pub async fn write_proxy(app_handle: &AppHandle,data:&mut Config)->Result<()>{
     Ok(())
 }
 
-pub async fn check_name_is_exist(name:String,config:&mut Config)->bool{
-    if let Some(proxies) = config.proxies.as_mut(){
-        if let Some(_) = proxies.iter().position(|item| item.name == name) {
-            return true;
-        }
-    }
-
-    // for item in config.proxies.iter()  {
-    //     if item.name == name {
-    //          return true;
-    //     }
-    // }
-    return false;
+pub fn check_name_is_exist(name:String,config:&Config)->bool{
+    config.proxies.as_ref().is_some_and(|proxies| 
+        {
+            proxies.iter().any(|p| p.name ==name) 
+        } 
+    )
 }
 
 pub async fn change_server_config(app_handle: &AppHandle,config:&mut Config,new_config:Config)->Result<(),String>{
@@ -139,6 +132,7 @@ pub async fn change_server_config(app_handle: &AppHandle,config:&mut Config,new_
     config.server_addr = new_config.server_addr;
     config.server_port = new_config.server_port;
     config.auth = new_config.auth;
+    config.transport = new_config.transport;
     println!("config:{:?}",config);
     // println!("new_config.auth:{:?}",new_config.auth);
     match write_proxy(app_handle,config).await{
@@ -159,7 +153,8 @@ async fn init_server_base(app_handle: &AppHandle)->Result<Config,String>{
         server_addr:"example.com".into(),
         server_port:3389,
         proxies:None,
-        auth:None
+        auth:None,
+        transport:None
     };
     match write_proxy(app_handle,&mut config).await {
         Ok(_)=>return Ok(config),

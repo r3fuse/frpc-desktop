@@ -43,12 +43,13 @@ listen("notification", (event) => {
     </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "../assets/css/main.scss" as *;
 .index {
     max-height: 100vh;
     height: 100vh;
     display: flex;
-    background-color: #3b4054;
+    background-color: #f4f7fb;
     flex-direction: column;
     box-sizing: border-box;
 }
@@ -62,6 +63,6 @@ listen("notification", (event) => {
     height: 94vh;
 }
 .side {
-    width: 20vw;
+    width: 16vw;
 }
 </style>

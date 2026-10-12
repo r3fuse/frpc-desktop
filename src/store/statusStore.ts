@@ -6,16 +6,27 @@ export const useStatusStore = defineStore("status", () => {
     const logs = ref<string[]>([]);
     const frpcStatus = ref<WorkStatus>(WorkStatus.noWork);
     const isWork = ref<boolean>(false);
+    const keepBottom = ref<boolean>(false);
+    const startTime = ref<number>(0);
 
     function getLogs(): string[] {
         return logs.value;
     }
 
     function addLogs(data: string) {
-        if (logs.value.length > 1000) {
+        if (!data) {
+            return;
+        }
+        if (logs.value.length > 100) {
             logs.value.shift();
         }
         logs.value.push(data);
+        if (data.includes("[W]")) {
+            changeFRPStatus(WorkStatus.warn);
+        }
+        if (data.includes("[E]") || data.includes("server failed")) {
+            changeFRPStatus(WorkStatus.error);
+        }
     }
 
     function clearLogs() {
@@ -46,14 +57,15 @@ export const useStatusStore = defineStore("status", () => {
 
     return {
         logs,
+        startTime,
         getLogs,
         addLogs,
         clearLogs,
         getProcessStatue,
-        changeFRPStatus,
         changeWork,
         getIsWork,
         frpcStatus,
         isWork,
+        keepBottom,
     };
 });

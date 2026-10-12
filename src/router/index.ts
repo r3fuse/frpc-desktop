@@ -1,22 +1,28 @@
 import { createWebHashHistory, createRouter } from "vue-router";
 
-import HomeView from "../views/index.vue";
-import Terminal from "../views/terminal.vue";
+import IndexView from "../views/index.vue";
+import Terminal from "../components/terminal/index.vue";
 import Config from "../views/config.vue";
 import Server from "../views/server.vue";
 import About from "../views/about.vue";
 import Status from "../views/status/index.vue";
+import Home from "../views/home/index.vue";
 
 const router = createRouter({
     history: createWebHashHistory(import.meta.env.BASE_URL),
     routes: [
         {
             path: "/",
-            name: "home",
-            component: HomeView,
+            name: "index",
+            component: IndexView,
             children: [
                 {
                     path: "/",
+                    name: "home",
+                    component: Home,
+                },
+                {
+                    path: "/status",
                     name: "status",
                     component: Status,
                 },

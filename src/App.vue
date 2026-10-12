@@ -4,7 +4,6 @@ import { useConfigStore } from "./store/configStore";
 import { useStatusStore } from "./store/statusStore";
 import { getConfig } from "./hooks/useTauri";
 import { frpLogsListener } from "./hooks/useTauri";
-import { WorkStatus } from "./utils/statue";
 
 const configStore = useConfigStore();
 const statusStore = useStatusStore();
@@ -28,14 +27,10 @@ onMounted(async () => {
         console.log("原始负载" + event.payload);
         let tempStr = stripAnsi(event.payload as string);
         console.log("tempStr" + tempStr);
-        if (tempStr.includes("[W]")) {
-            statusStore.changeFRPStatus(WorkStatus.warn);
-        }
-        if (tempStr.includes("[E]") || tempStr.includes("server failed")) {
-            statusStore.changeFRPStatus(WorkStatus.error);
-        }
         statusStore.addLogs(tempStr);
     });
+
+    statusStore.startTime = Date.now();
 });
 </script>
 
@@ -53,6 +48,7 @@ onMounted(async () => {
     height: 100vh;
     display: flex;
     overflow: hidden;
+    border-radius: 0.6rem;
 }
 .view {
     flex: 1;
@@ -69,7 +65,7 @@ body {
     font-weight: 400;
 
     color: #0f0f0f;
-    background-color: rgb(59, 64, 84);
+    /* background-color: rgb(59, 64, 84); */
 
     font-synthesis: none;
     text-rendering: optimizeLegibility;

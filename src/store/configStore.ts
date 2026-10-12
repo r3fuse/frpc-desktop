@@ -5,7 +5,7 @@ import { Config, Proxies } from "../utils/type";
 export const useConfigStore = defineStore("config", () => {
     const config = ref<Config>({});
 
-    function get_config(): Config {
+    function get_config(): Readonly<Config> {
         return config.value;
     }
 
@@ -14,8 +14,8 @@ export const useConfigStore = defineStore("config", () => {
     }
 
     function get_proxy(): Proxies[] | undefined {
-        return config.value.proxies;
+        return config.value.proxies ?? [];
     }
 
-    return { get_config, set_config, get_proxy };
+    return { config, set_config, get_config, get_proxy };
 });

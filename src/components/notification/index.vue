@@ -1,15 +1,34 @@
 <script setup lang="ts">
-type MessageType = "Success" | "Warning" | "Error"
+import { onMounted, onUnmounted } from "vue";
+type MessageType = "Success" | "Warning" | "Error";
 
 interface MsgType {
-    msg_type:MessageType,
-    title:string,
-    message:string
+    msg_type: MessageType;
+    title: string;
+    message: string;
+    lazyClose?: number;
 }
-const props = defineProps<MsgType>()
+const props = defineProps<MsgType>();
+const emit = defineEmits<{ onCancel: []; confirm: [] }>();
 
+let timer: ReturnType<typeof setTimeout>;
+
+onMounted(() => {
+    if (!props.lazyClose) {
+        timer = setTimeout(() => {
+            emit("confirm");
+        }, 3000);
+    } else {
+        timer = setTimeout(() => {
+            emit("confirm");
+        }, props.lazyClose);
+    }
+});
+
+onUnmounted(() => {
+    clearTimeout(timer);
+});
 </script>
-
 
 <template>
     <div class="notification" :class="props.msg_type.toLocaleLowerCase()">
@@ -18,11 +37,12 @@ const props = defineProps<MsgType>()
 </template>
 
 <style>
-.notification{
+.notification {
     z-index: 99;
     position: absolute;
     top: 50%;
-    left: 42%;
+    left: calc(50%);
+    transform: translateX(-50%);
     color: #ffffff;
     font-weight: bold;
     font-size: small;
@@ -32,29 +52,28 @@ const props = defineProps<MsgType>()
     opacity: 0;
     animation: lineShow 3s;
 }
-.notification.success{
+.notification.success {
     background-color: rgba(79, 212, 102, 0.8);
 }
-.notification.warning{
+.notification.warning {
     background-color: rgba(205, 212, 79, 0.8);
 }
-.notification.error{
+.notification.error {
     background-color: rgba(219, 34, 52, 0.8);
 }
 
-@keyframes lineShow{
-    0%{
-        top:60%;
+@keyframes lineShow {
+    0% {
+        top: 60%;
         opacity: 0;
     }
-    80%{
-        top:50%;
+    80% {
+        top: 50%;
         opacity: 1;
     }
-    100%{
+    100% {
         top: 50%;
         opacity: 0;
     }
 }
 </style>
-

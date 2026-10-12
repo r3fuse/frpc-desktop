@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
+import FrpcStatus from "../frpcStatus/index.vue";
 
 const lis = [
     { name: "状态", path: "/" },
@@ -40,6 +41,7 @@ onMounted(() => {
                 </li>
             </RouterLink>
         </ul>
+        <FrpcStatus />
     </div>
 </template>
 
@@ -47,16 +49,25 @@ onMounted(() => {
 @use "../../assets/css/main.scss" as *;
 a {
     text-decoration: none;
-    color: white;
+    color: black;
 }
 .siderBar {
     display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     padding: 1rem 0.6rem;
     height: 100%;
+    width: 100%;
     box-sizing: border-box;
+    background-color: rgb(224, 229, 241);
+    border-right: 1px solid #ccc;
+    box-shadow: 1px #ccc;
+    -webkit-user-select: none;
+    user-select: none;
 
     ul {
-        color: white;
+        width: 100%;
+        color: #1f2937;
         list-style-type: none;
         padding: 0;
         margin: 0;
@@ -67,23 +78,41 @@ a {
         font-weight: bold;
 
         li {
-            width: 10rem;
-            height: 2.6rem;
+            $show-time: 300ms;
+
+            height: 3rem;
+            width: 100%;
             margin: auto;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            border-radius: 0.4rem;
+            position: relative;
+            transition: all $show-time ease-in-out;
+
+            &::before {
+                content: "";
+                width: 0;
+                height: 100%;
+                position: absolute;
+                left: 1px;
+                background-color: $blue;
+                transition: all $show-time linear;
+            }
 
             &.active {
-                background-color: $blue;
+                background-color: $skyBlue;
+                overflow: hidden;
+
+                &::before {
+                    width: 6px;
+                }
             }
         }
 
         a {
             .active {
-                color: $darkblue;
+                color: $blue;
             }
         }
     }

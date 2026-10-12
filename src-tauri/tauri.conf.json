@@ -12,8 +12,8 @@
     "app": {
         "windows": [
             {
-                "width": 900,
-                "height": 700,
+                "width": 1280,
+                "height": 800,
                 "decorations": false,
                 "transparent": true
             }
@@ -25,8 +25,13 @@
     "bundle": {
         "active": true,
         "targets": "all",
-        "icon": ["icons/logo128.png"],
-        "externalBin": ["binaries/frpc"],
-        "resources": ["resources/frpc.toml"]
+        "icon": [
+            "icons/32x32.png",
+            "icons/128x128.png",
+            "icons/128x128@2x.png",
+            "icons/icon.icns",
+            "icons/icon.ico"
+        ],
+        "externalBin": ["binaries/frpc"]
     }
 }

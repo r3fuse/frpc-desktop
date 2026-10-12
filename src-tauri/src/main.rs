@@ -5,5 +5,5 @@ fn main() {
     #[cfg(target_os = "linux")]
     std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
     
-    frp_gui_lib::run()
+    frpc_desktop_lib::run()
 }

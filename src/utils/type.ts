@@ -1,24 +1,45 @@
-export interface Proxies{
-    name:string,
-    type:ProxyType,
-    enable?:boolean,
-    localIp?:string,
-    localPort?:number,
-    remotePort?:number
+export type ProxyType = "tcp" | "udp" | "http" | "https";
+
+export interface Proxies {
+    name: string;
+    type: ProxyType;
+    enabled?: boolean;
+    localIp?: string;
+    localPort?: number;
+    remotePort?: number;
 }
 
-export interface Config{
-    serverAddr?:string,
-    serverPort?:number,
-    proxies?:Proxies[],
-    auth?:AuthClientConfig
+export interface Config {
+    serverAddr?: string;
+    serverPort?: number;
+    proxies?: Proxies[];
+    auth?: AuthClientConfig;
+    transport?: ClientTransportConfig;
 }
 
-type AuthMethod = "token"|"oidc"
+type AuthMethod = "token" | "oidc" | null;
 
-interface AuthClientConfig{
-    method:AuthMethod
-    token?:string|null
+export type additionalScopesType = "HeartBeats" | "NewWorkConns";
+
+interface AuthClientConfig {
+    method?: AuthMethod;
+    token?: string | null;
+    additionalScopes?: additionalScopesType[];
 }
 
-export type ProxyType = "tcp"|"udp"|"http"|"https"
+type Protocol = "tcp" | "kcp" | "quic" | "websocket" | "wss";
+
+interface ClientTransportConfig {
+    protocol?: Protocol;
+    dialServerTimeout?: number;
+    poolCount?: number;
+    tcpMux?: boolean;
+    tcpMuxKeepaliveInterval?: number;
+    heartbeatInterval?: number;
+    heartbeatTimeout?: number;
+}
+
+export enum ProxyOperation {
+    "Add",
+    "Edit",
+}

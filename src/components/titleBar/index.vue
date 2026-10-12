@@ -39,7 +39,7 @@ onMounted(() => {
 
 <template>
     <div data-tauri-drag-region class="titleBar">
-        <div class="title">frpc-desktop</div>
+        <div class="title">Frpc Desktop</div>
         <div class="controllWindow">
             <div class="titlebar-button resize" id="titlebar-minimize">
                 <svg
@@ -82,14 +82,16 @@ onMounted(() => {
 .titleBar {
     position: sticky;
     width: 100%;
-    height: 2.4rem;
+    height: 2.6rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     box-sizing: border-box;
+    border-bottom: 1px solid #ccc;
     padding: 0px 0.2rem;
     background-color: rgba(255, 255, 255, 0.8);
     /* background-color: #ccc; */
+    background-color: #ebeae8;
     user-select: none;
     -webkit-user-select: none;
 }
