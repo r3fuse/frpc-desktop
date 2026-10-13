@@ -47,7 +47,7 @@ async function jumpIssues() {
     padding: 1rem;
 
     h2 {
-        margin-top: 0;
+        margin-top: 10px;
     }
 }
 .main {
@@ -83,6 +83,7 @@ async function jumpIssues() {
                 cursor: pointer;
                 width: 7rem;
                 font-weight: 100;
+                font-weight: bold;
 
                 img {
                     width: 16px;

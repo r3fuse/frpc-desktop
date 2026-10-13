@@ -42,7 +42,7 @@ watch(
 
 .frpcStatus {
     display: flex;
-    margin: 1rem;
+    justify-content: center;
     color: #333333d1;
     border-top: 1px solid #9999992c;
     height: 4rem;
