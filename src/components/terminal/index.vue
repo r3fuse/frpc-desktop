@@ -165,14 +165,11 @@ a {
         overflow-y: scroll;
         scrollbar-width: thin;
         scrollbar-color: rgb(176, 192, 231) transparent;
-        // background-color: rgb(48, 52, 70);
         color: rgb(123, 158, 240);
         font-weight: bold;
         font-family: consolas;
         padding: 0.5rem;
-        letter-spacing: 1px;
-        /* border-radius: 10px; */
-        /* border: 2px solid rgb(123, 158, 240); */
+
 
         ul {
             margin: 0;
