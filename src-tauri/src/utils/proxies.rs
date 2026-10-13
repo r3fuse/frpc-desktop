@@ -1,5 +1,3 @@
-use std::default;
-
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, serde::Serialize,Clone)]
@@ -43,15 +41,10 @@ pub enum AuthClientMethod{
 #[derive(Debug,Serialize, Deserialize,Clone)]
 #[serde(rename_all="camelCase")]
 pub struct AuthClientConfig{
-    // #[serde(default="default_auth_method")]
     pub method:Option<AuthClientMethod>,
     pub additional_scopes:Option<Vec<AdditionalScopes>>,
     pub token:Option<String>,
 }
-
-// fn default_auth_method()->AuthClientMethod{
-//     AuthClientMethod::Token
-// }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all="camelCase")]

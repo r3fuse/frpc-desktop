@@ -3,7 +3,6 @@ use tauri_plugin_shell::ShellExt;
 use tauri::{AppHandle, Emitter};
 use tauri_plugin_shell::process::CommandEvent;
 use tauri::{Manager};
-use std::path::PathBuf;
 use std::sync::Mutex;
 use serde::{Deserialize, Serialize};
 mod utils;
@@ -115,11 +114,6 @@ fn stop_frp(app_handle: tauri::AppHandle) {
 }
 
 
-// #[tauri::command]
-// async fn open_config_window(app_handle: AppHandle){
-//     let config_window = tauri::WebviewWindowBuilder::new(&app_handle, "local", tauri::WebviewUrl::App("index.html".into())).build().unwrap();
-// }
-
 //修改服务器配置
 #[tauri::command]
 async fn change_server(app_handle: AppHandle,new_config:Config)->Result<(),String>{
@@ -143,11 +137,6 @@ async fn add_proxy(app_handle: AppHandle,proxy:Proxies)->Result<(),String> {
     }
     config_guard.add_proxy(proxy);
     let _ = config_guard.save();
-    // if let Some(win) = app_handle.get_webview_window("config"){
-    //     app_handle.emit("config_updated",{}).unwrap();
-    //     let _ = win.close();
-    // }
-
     Ok(())
 }
 
@@ -250,13 +239,4 @@ fn get_momery_usage(){
                 println!("failed to get current pid: {}", e);
             }
         }
-}
-
-//获取配置文件路径
-#[tauri::command]
-fn get_config_path(app_handle: &AppHandle)->Result<PathBuf,String>{
-    let state = app_handle.state::<AppState>();
-    let data_guard = state.config.lock().unwrap();
-    let path = data_guard.path().clone();
-    Ok(path)
 }
