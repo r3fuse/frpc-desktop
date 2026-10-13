@@ -351,6 +351,7 @@ document.addEventListener("contextmenu", (e) => {
                 max-width: 10rem;
                 overflow-x: scroll;
                 scrollbar-width: thin;
+                scrollbar-color: #00000000 #00000000;
             }
             .running {
                 background-color: rgba(12, 208, 12, 0.222);
