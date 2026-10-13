@@ -59,7 +59,8 @@ a {
     height: 100%;
     width: 100%;
     box-sizing: border-box;
-    background-color: rgb(224, 229, 241);
+    // background-color: rgb(224, 229, 241);
+    background-color: white;
     border-right: 1px solid #ccc;
     box-shadow: 1px #ccc;
     -webkit-user-select: none;
@@ -90,17 +91,18 @@ a {
             position: relative;
             transition: all $show-time ease-in-out;
 
-            &::before {
-                content: "";
-                width: 0;
-                height: 100%;
-                position: absolute;
-                left: 1px;
-                background-color: $blue;
-                transition: all $show-time linear;
-            }
+            // &::before {
+            //     content: "";
+            //     width: 0;
+            //     height: 100%;
+            //     position: absolute;
+            //     left: 1px;
+            //     background-color: $blue;
+            //     transition: all $show-time linear;
+            // }
 
             &.active {
+                border-radius: 25px;
                 background-color: $skyBlue;
                 overflow: hidden;
 
