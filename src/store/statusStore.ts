@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { WorkStatus } from "../utils/statue";
+import { WorkStatus } from "@/types/statue";
 
 export const useStatusStore = defineStore("status", () => {
     const logs = ref<string[]>([]);

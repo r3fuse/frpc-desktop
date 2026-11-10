@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
-import { useStatusStore } from "../../store/statusStore";
+import { useStatusStore } from "@/store/statusStore";
 // defineOptions({
 //     name: "alive",
 // });

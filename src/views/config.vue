@@ -2,9 +2,9 @@
 import { onMounted, ref } from 'vue'
 import { invoke, } from '@tauri-apps/api/core'
 import { useRoute } from 'vue-router';
-import { type Proxies } from "../utils/type"
-import TitleBar from "../components/titleBar/index.vue"
-import { notification } from "../utils/notification.ts";
+import { type Proxies } from "@/types/type.ts"
+import TitleBar from "@/components/titleBar/index.vue"
+import { notification } from "@/utils/notification.ts";
 const route = useRoute();
 const {operation} = route.params
 

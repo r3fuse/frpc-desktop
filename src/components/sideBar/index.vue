@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-import FrpcStatus from "../frpcStatus/index.vue";
+import FrpcStatus from "@/components/frpcStatus/index.vue";
 
 const lis = [
     { name: "状态", path: "/" },

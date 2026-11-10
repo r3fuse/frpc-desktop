@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import Status from "../../components/proxiesStatus/index.vue";
+import Status from "@/components/proxiesStatus/index.vue";
 import { invoke } from "@tauri-apps/api/core";
-import { useStatusStore } from "../../store/statusStore.ts";
+import { useStatusStore } from "@/store/statusStore.ts";
 import { ref } from "vue";
 
 const statusStore = useStatusStore();

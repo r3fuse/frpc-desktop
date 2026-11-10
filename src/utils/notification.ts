@@ -1,5 +1,5 @@
 import { createVNode, render } from "vue";
-import Notification from "../components/notification/index.vue";
+import Notification from "@/components/notification/index.vue";
 
 type MessageType = "Success" | "Warning" | "Error";
 

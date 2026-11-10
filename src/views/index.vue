@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import TitleBar from "../components/titleBar/index.vue";
-import SideBar from "../components/sideBar/index.vue";
+import TitleBar from "@/components/titleBar/index.vue";
+import SideBar from "@/components/sideBar/index.vue";
 import { listen } from "@tauri-apps/api/event";
-import { notification } from "../utils/notification.ts";
+import { notification } from "@/utils/notification.ts";
 
 type MessageType = "Success" | "Warning" | "Error";
 

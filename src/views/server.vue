@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { InputTypeHTMLAttribute, onMounted, ref } from "vue";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { type Config } from "../utils/type.ts";
-import { changeServerConfigChain } from "../hooks/chains.ts";
-import { useConfigStore } from "../store/configStore.ts";
+import { type Config } from "@/types/type.ts";
+import { changeServerConfigChain } from "@/hooks/chains.ts";
+import { useConfigStore } from "@/store/configStore.ts";
 
 // async function getConfig(): Promise<Config> {
 //     return await invoke("get_config");
@@ -28,6 +28,24 @@ const config = ref<Config>({
         heartbeatTimeout: 90,
     },
 });
+
+const defaultConfig:Config = {
+    serverAddr: "",
+    serverPort: 7000,
+    auth: {
+        method: null,
+        token: "",
+    },
+    transport: {
+        protocol: "tcp",
+        dialServerTimeout: 10,
+        poolCount: 0,
+        tcpMux: true,
+        tcpMuxKeepaliveInterval: 30,
+        heartbeatInterval: 30,
+        heartbeatTimeout: 90,
+    },
+}
 
 const tokenInputType = ref<InputTypeHTMLAttribute>("password");
 
@@ -255,7 +273,7 @@ function save_server() {
             </div>
         </div>
         <div class="operation">
-            <button>恢复默认</button>
+            <button @click="config = defaultConfig">恢复默认</button>
             <button @click="save_server()">保存配置</button>
         </div>
     </div>
@@ -442,7 +460,6 @@ input {
             background-color: white;
             box-shadow: 0 0 1px 1px #ccc;
             border-radius: 4px;
-            padding: 4px 1rem;
             cursor: pointer;
         }
 

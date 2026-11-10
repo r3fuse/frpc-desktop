@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, useTemplateRef, watch } from "vue";
-import { Proxies, ProxyOperation } from "../../utils/type";
-import { updateProxyChain, addProxyChain } from "../../hooks/chains";
-import { notification } from "../../utils/notification";
+import { Proxies, ProxyOperation } from "@/types/type";
+import { updateProxyChain, addProxyChain } from "@/hooks/chains";
+import { notification } from "@/utils/notification";
 
 const model = defineModel<{
     proxy: Proxies;

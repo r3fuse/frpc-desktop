@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { watch, ref } from "vue";
-import { useStatusStore } from "../../store/statusStore";
+import { useStatusStore } from "@/store/statusStore";
 
 const statusStore = useStatusStore();
 

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { useConfigStore } from "./store/configStore";
-import { useStatusStore } from "./store/statusStore";
-import { getConfig } from "./hooks/useTauri";
-import { frpLogsListener } from "./hooks/useTauri";
+import { useConfigStore } from "@/store/configStore";
+import { useStatusStore } from "@/store/statusStore";
+import { getConfig } from "@/hooks/useTauri";
+import { frpLogsListener } from "@/hooks/useTauri";
 
 const configStore = useConfigStore();
 const statusStore = useStatusStore();

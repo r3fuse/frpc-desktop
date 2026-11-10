@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import ProxiesStatus from "../../components/proxiesStatus/index.vue";
-import Teminal from "../../components/terminal/index.vue";
-import BaseInfo from "../../components/baseInfo/index.vue";
+import ProxiesStatus from "@/components/proxiesStatus/index.vue";
+import Teminal from "@/components/terminal/index.vue";
+import BaseInfo from "@/components/baseInfo/index.vue";
 </script>
 
 <template>

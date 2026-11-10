@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { startFRP, stopFRP } from "../../hooks/useTauri";
-import { useStatusStore } from "../../store/statusStore";
-import { useConfigStore } from "../../store/configStore";
+import { startFRP, stopFRP } from "@/hooks/useTauri";
+import { useStatusStore } from "@/store/statusStore";
+import { useConfigStore } from "@/store/configStore";
 import { computed, onMounted, ref } from "vue";
 
 const statusStore = useStatusStore();

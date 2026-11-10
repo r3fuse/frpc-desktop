@@ -7,8 +7,8 @@ import {
     addProxy,
     changeServerConfig,
 } from "./useTauri";
-import { useConfigStore } from "../store/configStore";
-import { type Config, Proxies } from "../utils/type.ts";
+import { useConfigStore } from "@/store/configStore";
+import { type Config, Proxies } from "@/types/type.ts";
 
 async function updateConfigStore() {
     const configStore = useConfigStore();

@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { Config, Proxies } from "../utils/type";
+import { Config, Proxies } from "@/types/type";
 
 export const useConfigStore = defineStore("config", () => {
     const config = ref<Config>({});

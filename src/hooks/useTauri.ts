@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { Config, Proxies } from "../utils/type";
+import { Config, Proxies } from "../types/type";
 import { Event, listen, UnlistenFn } from "@tauri-apps/api/event";
 
 /**获得后端日志*/

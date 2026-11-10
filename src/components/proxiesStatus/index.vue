@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { useConfigStore } from "../../store/configStore";
-import MyDialog from "../myDialog/index.vue";
-import { type Proxies } from "../../utils/type.ts";
+import { useConfigStore } from "@/store/configStore";
+import MyDialog from "@/components/myDialog/index.vue";
+import { type Proxies } from "@/types/type.ts";
 import {
     switchProxyStatusChain,
     deleteProxyChain,
-} from "../../hooks/chains.ts";
-import { ProxyOperation } from "../../utils/type.ts";
-import { refreshConfigData } from "../../hooks/chains.ts";
+} from "@/hooks/chains.ts";
+import { ProxyOperation } from "@/types/type.ts";
+import { refreshConfigData } from "@/hooks/chains.ts";
 
 // enum FRPConfigOperation {
 //     Create = "Create",
